@@ -280,9 +280,34 @@
   <main>
     <!-- ========================= HERO ========================= -->
     <section class="hero" id="home" aria-label="Hero">
-<video autoplay loop muted playsinline poster="https://vz-820ae1bc-8ea.b-cdn.net/9c6efc8d-c184-4835-ad9a-3ef85b258f02/thumbnail.jpg">
-  <source src="https://iframe.mediadelivery.net/play/478232/9c6efc8d-c184-4835-ad9a-3ef85b258f02" type="video/mp4" />
-</video>
+<video id="heroVideo" autoplay loop muted playsinline preload="auto"
+  poster="https://vz-820ae1bc-8ea.b-cdn.net/9c6efc8d-c184-4835-ad9a-3ef85b258f02/thumbnail.jpg"
+  style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></video>
+
+<!-- HLS.js -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script>
+  const video = document.getElementById('heroVideo');
+  const HLS_SRC = "https://vz-820ae1bc-8ea.b-cdn.net/9c6efc8d-c184-4835-ad9a-3ef85b258f02/playlist.m3u8";
+  const MP4_FALLBACK = "https://iframe.mediadelivery.net/play/478232/9c6efc8d-c184-4835-ad9a-3ef85b258f02";
+
+  if (video.canPlayType('application/vnd.apple.mpegURL')) {
+    // Safari / iOS
+    video.src = HLS_SRC;
+    video.play().catch(()=>{});
+  } else if (window.Hls && Hls.isSupported()) {
+    // Chrome / Edge / Firefox
+    const hls = new Hls({lowLatencyMode:true});
+    hls.loadSource(HLS_SRC);
+    hls.attachMedia(video);
+    video.play().catch(()=>{});
+  } else {
+    // Final fallback
+    video.src = MP4_FALLBACK;
+    video.play().catch(()=>{});
+  }
+</script>
+
 
 
 
