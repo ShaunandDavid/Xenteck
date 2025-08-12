@@ -29,8 +29,33 @@
       --ink: #e9f1ff;             /* primary text */
       --muted: #98a2b3;           /* secondary text */
       --line: #1f2430;            /* hairline separators */
+      --neon: #00e1ff;            /* cyan neon */
+      --neon-2: #9a6bff;          /* violet neon */
+      --hot: #00ffd0;             /* mint accent */
+      --shadow: 0 10px 30px rgba(0,0,0,.45);
+      --radius: 18px;
+      --maxw: 1200px;
     }
 
+    /* =========================
+       GLOBAL RESET + BASE
+    ========================== */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: radial-gradient(1200px 800px at 80% -10%, rgba(154,107,255,.12), transparent 60%),
+                  radial-gradient(900px 600px at 10% 110%, rgba(0,225,255,.12), transparent 60%),
+                  var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+      line-height: 1.6;
+    }
+    .sora { font-family: 'Sora', 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif; }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+    /* Add smooth transition for mobile panel */
     .mobile-panel { transition: opacity .22s ease, transform .22s ease; }
     body.menu-open .mobile-panel { opacity: 1; transform: translateY(0); }
     .mobile-panel { opacity: 0; transform: translateY(-8px); }
@@ -186,40 +211,6 @@
       @keyframes slideDown { from { transform: translateY(-8px); opacity:0 } to { transform: translateY(0); opacity:1 } }
     }
   </style>
-  <!-- Email Capture Form Styles -->
-  <style>
-    .email-capture {
-      margin-top: 1rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .email-capture input[type="email"] {
-      padding: 0.75rem;
-      border: 1px solid #333;
-      border-radius: 8px;
-      background-color: #111;
-      color: #fff;
-      width: 250px;
-    }
-    .email-capture button {
-      padding: 0.75rem 1rem;
-      background-color: #00f0ff;
-      color: #000;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .email-capture button:hover {
-      background-color: #00cce0;
-    }
-    .form-message {
-      font-size: 0.85rem;
-      color: #00f0ff;
-    }
-  </style>
 </head>
 
 <body>
@@ -348,26 +339,6 @@
     video.play().catch(()=>{});
   }
 </script>
-  <!-- Email Capture Client-Side Validation -->
-  <script>
-    document.querySelector('.email-capture').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const emailInput = this.querySelector('input[name="email"]');
-      const messageEl = this.querySelector('.form-message');
-      const button = this.querySelector('button');
-
-      // Basic validation
-      if (!emailInput.value || !emailInput.value.includes('@')) {
-        messageEl.textContent = 'Please enter a valid email.';
-        return;
-      }
-
-      button.disabled = true;
-      messageEl.textContent = 'Submitting...';
-
-      // TODO: Hook to Formspree, ConvertKit, etc.
-    });
-  </script>
 
 
 
@@ -382,14 +353,6 @@
           <a class="btn btn-primary" href="#insights"><span>Learn More</span></a>
           <a class="btn btn-ghost" href="#contact">Work With Us</a>
         </div>
-        <!-- Email Capture Form -->
-        <form class="email-capture" method="POST" aria-label="Email signup">
-          <input type="email" name="email" placeholder="Enter your email" required aria-label="Your email address">
-          <!-- Honeypot field for bots -->
-          <input type="hidden" name="_gotcha">
-          <button type="submit">Subscribe</button>
-          <span class="form-message" role="alert" aria-live="polite"></span>
-        </form>
       </div>
     </section>
 
@@ -458,15 +421,25 @@
             <li>Secure by default: observability, guardrails, rollback</li>
           </ul>
         </div>
-      .email-capture { margin-top:2.2rem; }
-      .email-capture input[type="email"]::placeholder {
-        color: var(--muted);
-        opacity: 1;
-      }
+      </div>
+    </section>
+  </main>
 
-    </div>
-  </section>
-</main>
+  <!-- ========================= FOOTER ========================= -->
+  <footer class="footer" role="contentinfo">
+    <div class="container footer-grid">
+      <div class="footer">
+        <h5>Company</h5>
+        <a href="#home">About</a>
+        <a href="#contact">Careers</a>
+        <a href="#contact">Contact</a>
+      </div>
+      <div class="footer">
+        <h5>Products</h5>
+        <a href="#">Audit Engine</a>
+        <a href="#">Agent Studio</a>
+        <a href="#">Automation Hub</a>
+      </div>
       <div class="footer">
         <h5>Level 7 Divisions</h5>
         <a href="#">Faith</a>
