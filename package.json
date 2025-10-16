@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "npm run tailwind:build && npm run bundle",
+    "build": "npm run tailwind:build && npm run bundle && node ./scripts/build-static.mjs",
     "tailwind:build": "tailwindcss -i ./assets/css/tailwind.input.css -o ./assets/css/tailwind.css --minify",
     "tailwind:watch": "tailwindcss -i ./assets/css/tailwind.input.css -o ./assets/css/tailwind.css --watch",
     "bundle": "esbuild assets/js/visualizer.jsx --bundle --format=esm --outfile=assets/js/dist/visualizer.bundle.js --external:react --external:react-dom/* --external:recharts --external:@google/genai",
