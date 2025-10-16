@@ -4,6 +4,12 @@ type ForecastPoint = {
   milestone?: string;
 };
 
+declare const process:
+  | {
+      env?: Record<string, string | undefined>;
+    }
+  | undefined;
+
 export const config = {
   runtime: 'edge'
 };
