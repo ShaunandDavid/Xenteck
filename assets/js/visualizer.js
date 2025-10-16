@@ -1,7 +1,6 @@
 import React, {
   useCallback,
   useEffect,
-  useMemo,
   useState
 } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -15,8 +14,6 @@ import {
   Tooltip,
   Legend
 } from 'recharts';
-import { GoogleGenAI, Type } from '@google/genai';
-
 const DEFAULT_TOPIC = 'Agentic SaaS';
 const LOCAL_STORAGE_KEY = 'xenteck_gemini_key';
 const growthApiUrl = typeof window !== 'undefined' && window.ENV?.GROWTH_API_URL
@@ -48,6 +45,18 @@ const sampleTopics = [
   'Predictive Healthcare Agents'
 ];
 
+let geminiModulePromise = null;
+
+const loadGeminiSdk = async () => {
+  if (!geminiModulePromise) {
+    geminiModulePromise = import('@google/genai').catch((error) => {
+      console.error('Failed to load Gemini SDK', error);
+      return null;
+    });
+  }
+  return geminiModulePromise;
+};
+
 const systemInstruction = `
 You are a technology futurist and data analyst. Your task is to generate a projected growth trajectory for a specific field of Artificial Intelligence provided by the user.
 You must respond with only a JSON array of objects. Do not include any other text, explanation, or markdown formatting.
@@ -56,17 +65,20 @@ The data should start from a plausible year of inception for the given topic and
 The growth curve should be exponential, reflecting the accelerating nature of AI development.
 `;
 
-const responseSchema = {
-  type: Type.ARRAY,
-  items: {
-    type: Type.OBJECT,
-    properties: {
-      year: { type: Type.NUMBER },
-      advancement: { type: Type.NUMBER },
-      milestone: { type: Type.STRING }
-    },
-    required: ['year', 'advancement']
-  }
+const buildResponseSchema = (Type) => {
+  if (!Type) return undefined;
+  return {
+    type: Type.ARRAY,
+    items: {
+      type: Type.OBJECT,
+      properties: {
+        year: { type: Type.NUMBER },
+        advancement: { type: Type.NUMBER },
+        milestone: { type: Type.STRING }
+      },
+      required: ['year', 'advancement']
+    }
+  };
 };
 
 const sanitiseAndParse = async (maybeResponse) => {
@@ -338,19 +350,31 @@ const fetchGrowthApi = async (topic) => {
   return points;
 };
 
-async function getProjectedGrowthData(client, topic) {
-  if (!client) {
+async function getProjectedGrowthData(apiKey, topic) {
+  if (!apiKey) {
+    throw new Error('Gemini key unavailable');
+  }
+
+  const gemini = await loadGeminiSdk();
+  if (!gemini || !gemini.GoogleGenAI) {
     throw new Error('Gemini client unavailable');
   }
+
+  const schema = buildResponseSchema(gemini.Type);
+  const config = {
+    systemInstruction,
+    responseMimeType: 'application/json'
+  };
+  if (schema) {
+    config.responseSchema = schema;
+  }
+
+  const client = new gemini.GoogleGenAI({ apiKey });
 
   const response = await client.models.generateContent({
     model: 'gemini-2.5-flash',
     contents: `Generate the growth trajectory for: "${topic}"`,
-    config: {
-      systemInstruction,
-      responseMimeType: 'application/json',
-      responseSchema
-    }
+    config
   });
 
   return sanitiseAndParse(response);
@@ -376,19 +400,6 @@ const VisualizerApp = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  const client = useMemo(() => {
-    if (!apiKey) {
-      return null;
-    }
-
-    try {
-      return new GoogleGenAI({ apiKey });
-    } catch (error) {
-      console.error('Failed to initialise Gemini client', error);
-      return null;
-    }
-  }, [apiKey]);
-
   const runProjection = useCallback(async (currentTopic, options = { force: false }) => {
     if (!currentTopic) {
       return;
@@ -412,9 +423,9 @@ const VisualizerApp = () => {
       }
     }
 
-    if (!data && client) {
+    if (!data && apiKey) {
       try {
-        data = await getProjectedGrowthData(client, currentTopic);
+        data = await getProjectedGrowthData(apiKey, currentTopic);
         source = 'gemini';
       } catch (error) {
         console.error('Gemini projection failed', error);
@@ -440,7 +451,7 @@ const VisualizerApp = () => {
       setStatusMessage('Showing illustrative projection');
       if (growthError) {
         setErrorMessage(`Live services unavailable: ${growthError}`);
-      } else if (!client) {
+      } else if (!apiKey) {
         setErrorMessage('Add a Gemini key or configure Growth API to activate live projections.');
       } else {
         setErrorMessage('Unable to fetch projection from Gemini.');
@@ -449,7 +460,7 @@ const VisualizerApp = () => {
     }
 
     setIsLoading(false);
-  }, [client]);
+  }, [apiKey]);
 
   useEffect(() => {
     let cancelled = false;
