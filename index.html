@@ -39,8 +39,7 @@
   </script>
   <script>
     window.ENV = window.ENV || {};
-    window.ENV.GEMINI_API_KEY = window.ENV.GEMINI_API_KEY || 'YOUR_GEMINI_API_KEY';
-    window.ENV.GROWTH_API_URL = window.ENV.GROWTH_API_URL || '';
+    window.ENV.GEMINI_API_KEY = window.ENV.GEMINI_API_KEY || '';
   </script>
   <link rel="stylesheet" href="assets/css/styles.css" />
 </head>
@@ -307,16 +306,12 @@
   <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <script defer src="assets/js/main.js"></script>
-  <!-- ENV for the visualizer (must be before visualizer.js) -->
   <script>
     window.ENV = window.ENV || {};
-    window.ENV.GROWTH_API_URL = window.ENV.GROWTH_API_URL || '/api/v1/interest-trends';
-    window.GROWTH_API_URL = window.ENV.GROWTH_API_URL;
-    console.log('[Visualizer] GROWTH_API_URL =', window.ENV.GROWTH_API_URL);
+    window.ENV.GROWTH_API_URL = '/api/v1/interest-trends';
   </script>
   <script type="module" src="assets/js/visualizer.js"></script>
 </body>
 </html>
-
 
 
