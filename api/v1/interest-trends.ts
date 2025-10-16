@@ -4,12 +4,6 @@ type ForecastPoint = {
   milestone?: string;
 };
 
-declare const process:
-  | {
-      env?: Record<string, string | undefined>;
-    }
-  | undefined;
-
 export const config = {
   runtime: 'edge'
 };
@@ -108,7 +102,8 @@ function buildForecast(topic: string): ForecastPoint[] {
   const seed = topic.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
   const now = new Date().getUTCFullYear();
   const count = 6;
-  const hasGeminiKey = Boolean(process.env.GEMINI_API_KEY);
+  const env = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env;
+  const hasGeminiKey = Boolean(env?.GEMINI_API_KEY);
 
   return Array.from({ length: count }, (_, index) => {
     const year = now - 2 + index;
