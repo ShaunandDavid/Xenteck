@@ -238,10 +238,22 @@ body.menu-open .mobile-panel { display: block; opacity: 1; transform: translateY
   line-height: 1.6;
   max-width: 32rem;
 }
+.section-visualizer {
+  padding: clamp(4rem, 8vh, 6.5rem) 0;
+}
+.section-visualizer .container {
+  display: flex;
+  justify-content: center;
+  width: min(1320px, calc(100% - 2rem));
+}
 .visualizer-shell {
   display: flex;
   align-items: stretch;
   justify-content: stretch;
+}
+.visualizer-shell--standalone {
+  margin: 0 auto;
+  width: 100%;
 }
 .visualizer-panel {
   position: relative;

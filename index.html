@@ -41,6 +41,7 @@
     window.ENV = window.ENV || {};
     window.ENV.GEMINI_API_KEY = window.ENV.GEMINI_API_KEY || '';
   </script>
+  <link rel="stylesheet" href="assets/css/tailwind.css" />
   <link rel="stylesheet" href="assets/css/styles.css" />
 </head>
 <body>
@@ -168,14 +169,20 @@
             </div>
             <p class="hero-footnote">Visualize compounded growth scenarios in real time and pressure-test your roadmap against live AI breakthroughs.</p>
           </div>
-          <div class="visualizer-shell">
-            <div id="ai-visualizer" class="visualizer-panel" aria-live="polite">
-              <div class="visualizer-spinner" role="status">
-                <span class="spinner-dot" aria-hidden="true"></span>
-                <span class="spinner-label">Loading AI projections...</span>
-              </div>
-              <p class="visualizer-note">Live forecasts load automatically when Growth API is configured. Optionally set window.ENV.GEMINI_API_KEY to enable Gemini projections.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================= VISUALIZER ========================= -->
+    <section class="section section-visualizer" aria-label="Growth Visualizer">
+      <div class="container">
+        <div class="visualizer-shell visualizer-shell--standalone">
+          <div id="ai-visualizer" class="visualizer-panel" aria-live="polite">
+            <div class="visualizer-spinner" role="status">
+              <span class="spinner-dot" aria-hidden="true"></span>
+              <span class="spinner-label">Loading AI projections...</span>
             </div>
+            <p class="visualizer-note">Live forecasts load automatically when Growth API is configured. Optionally set window.ENV.GEMINI_API_KEY to enable Gemini projections.</p>
           </div>
         </div>
       </div>
@@ -310,7 +317,6 @@
     window.ENV = window.ENV || {};
     window.ENV.GROWTH_API_URL = '/api/v1/interest-trends';
   </script>
-  <script type="module" src="assets/js/visualizer.js"></script>
+  <script type="module" src="assets/js/dist/visualizer.bundle.js"></script>
 </body>
 </html>
-
