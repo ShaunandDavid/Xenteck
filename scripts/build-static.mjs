@@ -1,4 +1,6 @@
 import { cp, mkdir, rm, stat } from 'fs/promises';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -6,6 +8,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 const publicDir = path.join(projectRoot, 'public');
+
+const execFileAsync = promisify(execFile);
 
 const entriesToCopy = [
   ['index.html', 'index.html'],
@@ -39,6 +43,19 @@ const main = async () => {
   await rm(publicDir, { recursive: true, force: true });
   await mkdir(publicDir, { recursive: true });
   await Promise.all(entriesToCopy.map(copyEntry));
+  const { stdout, stderr } = await execFileAsync(
+    process.execPath,
+    [path.join(__dirname, 'inject-gemini-key.js')],
+    {
+      cwd: projectRoot,
+      env: {
+        ...process.env,
+        TARGET_INDEX_PATHS: ['public/index.html', 'public/404.html'].join(',')
+      }
+    }
+  );
+  if (stdout) process.stdout.write(stdout);
+  if (stderr) process.stderr.write(stderr);
 };
 
 main().catch((error) => {

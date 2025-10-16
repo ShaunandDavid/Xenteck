@@ -7,7 +7,8 @@
     "tailwind:build": "tailwindcss -i ./assets/css/tailwind.input.css -o ./assets/css/tailwind.css --minify",
     "tailwind:watch": "tailwindcss -i ./assets/css/tailwind.input.css -o ./assets/css/tailwind.css --watch",
     "bundle": "esbuild assets/js/visualizer.jsx --bundle --format=esm --outfile=assets/js/dist/visualizer.bundle.js --external:react --external:react-dom/* --external:recharts --external:@google/genai",
-    "bundle:watch": "esbuild assets/js/visualizer.jsx --bundle --format=esm --outfile=assets/js/dist/visualizer.bundle.js --external:react --external:react-dom/* --external:recharts --external:@google/genai --watch"
+    "bundle:watch": "esbuild assets/js/visualizer.jsx --bundle --format=esm --outfile=assets/js/dist/visualizer.bundle.js --external:react --external:react-dom/* --external:recharts --external:@google/genai --watch",
+    "inject-env": "node ./scripts/inject-gemini-key.js"
   },
   "devDependencies": {
     "esbuild": "^0.23.0",

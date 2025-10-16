@@ -11,10 +11,26 @@ const fs = require('fs');
 const path = require('path');
 
 const projectRoot = path.resolve(__dirname, '..');
-const indexPath = path.join(projectRoot, 'index.html');
 
-if (!fs.existsSync(indexPath)) {
-  console.error('Cannot locate index.html. Did the project structure change?');
+const resolveTargets = () => {
+  const raw =
+    process.env.TARGET_INDEX_PATHS ||
+    process.env.TARGET_INDEX_PATH ||
+    'index.html';
+
+  return raw
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .map((entry) =>
+      path.isAbsolute(entry) ? entry : path.join(projectRoot, entry)
+    );
+};
+
+const targets = resolveTargets();
+
+if (!targets.length) {
+  console.error('No target index paths provided for environment injection.');
   process.exit(1);
 }
 
@@ -26,21 +42,30 @@ const escapeForJsString = (value) =>
 const geminiKey = escapeForJsString(process.env.GEMINI_API_KEY || '');
 const growthApiUrl = escapeForJsString(process.env.GROWTH_API_URL || '');
 
-const original = fs.readFileSync(indexPath, 'utf8');
+const applyInjection = (targetPath) => {
+  if (!fs.existsSync(targetPath)) {
+    console.warn(`[inject-env] Skipping missing file: ${targetPath}`);
+    return;
+  }
 
-let updated = original.replace(
-  /window\.ENV\.GEMINI_API_KEY = window\.ENV\.GEMINI_API_KEY \|\| '[^']*';/,
-  `window.ENV.GEMINI_API_KEY = window.ENV.GEMINI_API_KEY || '${geminiKey}';`
-);
+  const original = fs.readFileSync(targetPath, 'utf8');
 
-updated = updated.replace(
-  /window\.ENV\.GROWTH_API_URL = window\.ENV\.GROWTH_API_URL \|\| '[^']*';/,
-  `window.ENV.GROWTH_API_URL = window.ENV.GROWTH_API_URL || '${growthApiUrl}';`
-);
+  let updated = original.replace(
+    /window\.ENV\.GEMINI_API_KEY = window\.ENV\.GEMINI_API_KEY \|\| '[^']*';/,
+    `window.ENV.GEMINI_API_KEY = window.ENV.GEMINI_API_KEY || '${geminiKey}';`
+  );
 
-if (updated !== original) {
-  fs.writeFileSync(indexPath, updated);
-  console.log('Injected environment values into index.html');
-} else {
-  console.log('No replacements made. The script may have already run.');
-}
+  updated = updated.replace(
+    /window\.ENV\.GROWTH_API_URL = window\.ENV\.GROWTH_API_URL \|\| '[^']*';/,
+    `window.ENV.GROWTH_API_URL = window.ENV.GROWTH_API_URL || '${growthApiUrl}';`
+  );
+
+  if (updated !== original) {
+    fs.writeFileSync(targetPath, updated);
+    console.log(`[inject-env] Injected environment values into ${targetPath}`);
+  } else {
+    console.log(`[inject-env] No replacements made for ${targetPath}`);
+  }
+};
+
+targets.forEach(applyInjection);
