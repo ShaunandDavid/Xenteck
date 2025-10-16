@@ -1,5 +1,3 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-
 type ForecastPoint = {
   year: number;
   advancement: number;
@@ -19,30 +17,73 @@ function coerceString(value: unknown): string {
   return '';
 }
 
-function readBody(req: VercelRequest): Record<string, unknown> | null {
-  const { body } = req;
-  if (!body) return null;
-  if (typeof body === 'object') {
-    return body as Record<string, unknown>;
+function jsonResponse(body: unknown, init: ResponseInit = {}): Response {
+  const headers = new Headers(init.headers ?? {});
+  headers.set('Content-Type', 'application/json; charset=utf-8');
+  return new Response(JSON.stringify(body), { ...init, headers });
+}
+
+async function readBody(request: Request): Promise<Record<string, unknown> | null> {
+  if (request.method === 'GET' || request.method === 'HEAD') {
+    return null;
   }
-  if (typeof body === 'string') {
+
+  try {
+    const clone = request.clone();
+    const contentType = (clone.headers.get('content-type') || '').toLowerCase();
+
+    if (contentType.includes('application/json')) {
+      const parsed = await clone.json();
+      return parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : null;
+    }
+
+    if (contentType.includes('application/x-www-form-urlencoded') || contentType.includes('multipart/form-data')) {
+      const formData = await clone.formData();
+      const result: Record<string, unknown> = {};
+
+      formData.forEach((value, key) => {
+        if (typeof value !== 'string') {
+          return;
+        }
+        if (key in result) {
+          const current = result[key];
+          if (Array.isArray(current)) {
+            current.push(value);
+          } else {
+            result[key] = [current as string, value];
+          }
+        } else {
+          result[key] = value;
+        }
+      });
+
+      return Object.keys(result).length ? result : null;
+    }
+
+    const raw = (await clone.text()).trim();
+    if (!raw) {
+      return null;
+    }
+
     try {
-      const parsed = JSON.parse(body);
-      return typeof parsed === 'object' && parsed !== null ? (parsed as Record<string, unknown>) : null;
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : null;
     } catch {
       return null;
     }
+  } catch {
+    return null;
   }
-  return null;
 }
 
-function extractTopic(req: VercelRequest): string {
-  const topic = coerceString(req.query.topic);
-  const interest = coerceString(req.query.interest);
+async function extractTopic(request: Request): Promise<string> {
+  const url = new URL(request.url);
+  const topic = coerceString(url.searchParams.get('topic'));
+  const interest = coerceString(url.searchParams.get('interest'));
   if (topic) return topic;
   if (interest) return interest;
 
-  const body = readBody(req);
+  const body = await readBody(request);
   if (body) {
     const bodyTopic = coerceString(body.topic);
     const bodyInterest = coerceString(body.interest);
@@ -79,26 +120,42 @@ function buildForecast(topic: string): ForecastPoint[] {
   });
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(request: Request): Promise<Response> {
   try {
-    if (!req.method || !ALLOWED_METHODS.has(req.method)) {
-      res.setHeader('Allow', 'GET, POST');
-      return res.status(405).json({ ok: false, error: { code: 'method_not_allowed' } });
+    if (!ALLOWED_METHODS.has(request.method)) {
+      return jsonResponse(
+        { ok: false, error: { code: 'method_not_allowed' } },
+        {
+          status: 405,
+          headers: { Allow: 'GET, POST' }
+        }
+      );
     }
 
-    const topic = extractTopic(req);
+    const topic = await extractTopic(request);
 
     if (!topic) {
-      return res
-        .status(400)
-        .json({ ok: false, error: { code: 'bad_request', message: 'Missing required parameter: topic or interest' } });
+      return jsonResponse(
+        {
+          ok: false,
+          error: { code: 'bad_request', message: 'Missing required parameter: topic or interest' }
+        },
+        { status: 400 }
+      );
     }
 
     const data = buildForecast(topic);
 
-    res.setHeader('Cache-Control', 'public, max-age=300');
-    return res.status(200).json({ data, topic, ok: true });
+    return jsonResponse(
+      { data, topic, ok: true },
+      {
+        status: 200,
+        headers: {
+          'Cache-Control': 'public, max-age=300'
+        }
+      }
+    );
   } catch (error) {
-    return res.status(500).json({ ok: false, error: { code: 'server_error' } });
+    return jsonResponse({ ok: false, error: { code: 'server_error' } }, { status: 500 });
   }
 }
