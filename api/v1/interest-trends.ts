@@ -4,6 +4,10 @@ type ForecastPoint = {
   milestone?: string;
 };
 
+export const config = {
+  runtime: 'edge'
+};
+
 const ALLOWED_METHODS = new Set(['GET', 'POST']);
 
 function coerceString(value: unknown): string {
