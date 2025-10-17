@@ -103,11 +103,11 @@ const normalisePoints = (payload: unknown): GeminiPoint[] => {
   }
 
   return payload
-    .map((point) => {
-      if (typeof point !== 'object' || point === null) {
+    .map((rawPoint) => {
+      if (typeof rawPoint !== 'object' || rawPoint === null) {
         return null;
       }
-      const record = point as Record<string, unknown>;
+      const record = rawPoint as Record<string, unknown>;
       const year = Number(record.year);
       const advancement = Number(record.advancement);
 
@@ -115,16 +115,16 @@ const normalisePoints = (payload: unknown): GeminiPoint[] => {
         return null;
       }
 
-      const point: GeminiPoint = { year, advancement };
+      const normalizedPoint: GeminiPoint = { year, advancement };
       if (typeof record.milestone === 'string') {
         const trimmed = record.milestone.trim();
         if (trimmed) {
-          point.milestone = trimmed;
+          normalizedPoint.milestone = trimmed;
         }
       }
-      return point;
+      return normalizedPoint;
     })
-    .filter((point): point is GeminiPoint => point !== null)
+    .filter((normalizedPoint): normalizedPoint is GeminiPoint => normalizedPoint !== null)
     .sort((a, b) => a.year - b.year);
 };
 
