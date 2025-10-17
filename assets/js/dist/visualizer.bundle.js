@@ -43568,7 +43568,7 @@ var LivingGraph = ({ topic, projectionData }) => {
     () => mergeBaselineWithProjection(projectionData, topic),
     [projectionData, topic]
   );
-  return /* @__PURE__ */ import_react46.default.createElement(ResponsiveContainer, { width: "100%", height: "100%" }, /* @__PURE__ */ import_react46.default.createElement(AreaChart, { data: combinedData, margin: { top: 10, right: 24, left: 16, bottom: 0 } }, /* @__PURE__ */ import_react46.default.createElement("defs", null, /* @__PURE__ */ import_react46.default.createElement("linearGradient", { id: "baseline-gradient", x1: "0", y1: "0", x2: "0", y2: "1" }, /* @__PURE__ */ import_react46.default.createElement("stop", { offset: "0%", stopColor: "#90a0ba", stopOpacity: 0.55 }), /* @__PURE__ */ import_react46.default.createElement("stop", { offset: "100%", stopColor: "rgba(144, 160, 186, 0)", stopOpacity: 0 })), /* @__PURE__ */ import_react46.default.createElement("linearGradient", { id: "projection-gradient", x1: "0", y1: "0", x2: "0", y2: "1" }, /* @__PURE__ */ import_react46.default.createElement("stop", { offset: "0%", stopColor: "#00e1ff", stopOpacity: 0.45 }), /* @__PURE__ */ import_react46.default.createElement("stop", { offset: "100%", stopColor: "rgba(0, 225, 255, 0)", stopOpacity: 0 }))), /* @__PURE__ */ import_react46.default.createElement(CartesianGrid, { strokeDasharray: "3 3", stroke: "rgba(255,255,255,0.08)" }), /* @__PURE__ */ import_react46.default.createElement(
+  return /* @__PURE__ */ import_react46.default.createElement(ResponsiveContainer, { width: "100%", height: "100%" }, /* @__PURE__ */ import_react46.default.createElement(AreaChart, { data: combinedData, margin: { top: 16, right: 48, left: 24, bottom: 24 } }, /* @__PURE__ */ import_react46.default.createElement("defs", null, /* @__PURE__ */ import_react46.default.createElement("linearGradient", { id: "baseline-gradient", x1: "0", y1: "0", x2: "0", y2: "1" }, /* @__PURE__ */ import_react46.default.createElement("stop", { offset: "0%", stopColor: "#90a0ba", stopOpacity: 0.55 }), /* @__PURE__ */ import_react46.default.createElement("stop", { offset: "100%", stopColor: "rgba(144, 160, 186, 0)", stopOpacity: 0 })), /* @__PURE__ */ import_react46.default.createElement("linearGradient", { id: "projection-gradient", x1: "0", y1: "0", x2: "0", y2: "1" }, /* @__PURE__ */ import_react46.default.createElement("stop", { offset: "0%", stopColor: "#00e1ff", stopOpacity: 0.45 }), /* @__PURE__ */ import_react46.default.createElement("stop", { offset: "100%", stopColor: "rgba(0, 225, 255, 0)", stopOpacity: 0 }))), /* @__PURE__ */ import_react46.default.createElement(CartesianGrid, { strokeDasharray: "3 3", stroke: "rgba(255,255,255,0.08)" }), /* @__PURE__ */ import_react46.default.createElement(
     XAxis,
     {
       dataKey: "year",
@@ -43640,24 +43640,15 @@ var ChatWindow = ({
   onTopicSubmit,
   onPresetSelect,
   isLoading,
-  apiKeyDraft,
-  onApiKeyDraftChange,
-  onSaveKey,
-  onClearKey,
-  hasStoredKey,
   presets = DEFAULT_PRESETS,
   growthActive,
   statusMessage,
   sourceLabel
 }) => {
   const [localTopic, setLocalTopic] = (0, import_react47.useState)(topicDraft);
-  const [localKey, setLocalKey] = (0, import_react47.useState)(apiKeyDraft);
   (0, import_react47.useEffect)(() => {
     setLocalTopic(topicDraft);
   }, [topicDraft]);
-  (0, import_react47.useEffect)(() => {
-    setLocalKey(apiKeyDraft);
-  }, [apiKeyDraft]);
   const handleSubmit = (event) => {
     event.preventDefault();
     const trimmed = (localTopic || "").trim();
@@ -43675,24 +43666,7 @@ var ChatWindow = ({
     onTopicDraftChange(preset);
     onPresetSelect(preset);
   };
-  const handleKeyInput = (event) => {
-    const value = event.target.value;
-    setLocalKey(value);
-    onApiKeyDraftChange(value);
-  };
-  const handleSaveKey = () => {
-    onSaveKey((localKey || "").trim());
-  };
-  return /* @__PURE__ */ import_react47.default.createElement("aside", { className: "ai-panel ai-panel--sidebar" }, /* @__PURE__ */ import_react47.default.createElement("div", { className: "ai-panel__heading" }, /* @__PURE__ */ import_react47.default.createElement("h2", { className: "sora" }, "Scenario controls"), growthActive ? /* @__PURE__ */ import_react47.default.createElement("span", { className: "ai-panel__subtext" }, "Growth API is powering live projections. Gemini remains optional for hybrid insights.") : /* @__PURE__ */ import_react47.default.createElement("span", { className: "ai-panel__subtext" }, "Add a Gemini API key or configure Growth API to stream live trajectories.")), /* @__PURE__ */ import_react47.default.createElement("form", { className: "ai-form", onSubmit: handleSubmit }, /* @__PURE__ */ import_react47.default.createElement("div", { className: "ai-form__group" }, /* @__PURE__ */ import_react47.default.createElement("span", { className: "ai-form__label" }, "Gemini API key"), /* @__PURE__ */ import_react47.default.createElement("div", { className: "ai-form__row" }, /* @__PURE__ */ import_react47.default.createElement(
-    "input",
-    {
-      className: "ai-input",
-      type: "password",
-      placeholder: "galaxy-...",
-      value: localKey,
-      onChange: handleKeyInput
-    }
-  ), /* @__PURE__ */ import_react47.default.createElement("button", { className: "ai-button", type: "button", onClick: handleSaveKey }, "Save key")), hasStoredKey && /* @__PURE__ */ import_react47.default.createElement("button", { className: "ai-link", type: "button", onClick: onClearKey }, "Remove stored key")), /* @__PURE__ */ import_react47.default.createElement("div", { className: "ai-form__group" }, /* @__PURE__ */ import_react47.default.createElement("span", { className: "ai-form__label" }, "Projection topic"), /* @__PURE__ */ import_react47.default.createElement(
+  return /* @__PURE__ */ import_react47.default.createElement("aside", { className: "ai-panel ai-panel--sidebar" }, /* @__PURE__ */ import_react47.default.createElement("div", { className: "ai-panel__heading" }, /* @__PURE__ */ import_react47.default.createElement("h2", { className: "sora" }, "Scenario controls"), growthActive ? /* @__PURE__ */ import_react47.default.createElement("span", { className: "ai-panel__subtext" }, "Growth API is powering live projections. Gemini remains optional for hybrid insights.") : /* @__PURE__ */ import_react47.default.createElement("span", { className: "ai-panel__subtext" }, "Add a Gemini API key or configure Growth API to stream live trajectories.")), /* @__PURE__ */ import_react47.default.createElement("form", { className: "ai-form", onSubmit: handleSubmit }, /* @__PURE__ */ import_react47.default.createElement("div", { className: "ai-form__group" }, /* @__PURE__ */ import_react47.default.createElement("span", { className: "ai-form__label" }, "Projection topic"), /* @__PURE__ */ import_react47.default.createElement(
     "input",
     {
       className: "ai-input",
@@ -43854,7 +43828,6 @@ var getProjectedGrowthData = async (topic, providedKey) => {
 
 // assets/js/visualizer.jsx
 var DEFAULT_TOPIC = "AI Growth";
-var LOCAL_STORAGE_KEY = "xenteck_gemini_key";
 var sampleTopics = [
   "Autonomous Logistics",
   "GenAI Sales Co-Pilots",
@@ -43865,27 +43838,6 @@ var sampleTopics = [
   "Intelligent Edge Vision",
   "Predictive Healthcare Agents"
 ];
-var getStoredKey = () => {
-  try {
-    if ("localStorage" in window) {
-      return localStorage.getItem(LOCAL_STORAGE_KEY) || "";
-    }
-  } catch (_) {
-  }
-  return "";
-};
-var persistKey = (value) => {
-  try {
-    if ("localStorage" in window) {
-      if (value) {
-        localStorage.setItem(LOCAL_STORAGE_KEY, value);
-      } else {
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
-      }
-    }
-  } catch (_) {
-  }
-};
 var getInitialTopic = () => {
   try {
     const params = new URLSearchParams(window.location.search);
@@ -43911,12 +43863,8 @@ var createFallbackProjection = (topic) => {
 };
 var VisualizerApp = () => {
   const initialTopic = getInitialTopic();
-  const storedKey = typeof window !== "undefined" ? getStoredKey() : "";
-  const initialKey = storedKey;
   const [topic, setTopic] = (0, import_react49.useState)(initialTopic);
   const [topicDraft, setTopicDraft] = (0, import_react49.useState)(initialTopic);
-  const [apiKey, setApiKey] = (0, import_react49.useState)(initialKey);
-  const [apiKeyDraft, setApiKeyDraft] = (0, import_react49.useState)(initialKey);
   const [projectionData, setProjectionData] = (0, import_react49.useState)(() => createFallbackProjection(initialTopic));
   const [statusMessage, setStatusMessage] = (0, import_react49.useState)("Illustrative projection. Growth API or Gemini live data will appear here when available.");
   const [sourceLabel, setSourceLabel] = (0, import_react49.useState)("Illustrative");
@@ -43930,13 +43878,12 @@ var VisualizerApp = () => {
   const runProjection = (0, import_react49.useCallback)(async (currentTopic) => {
     if (!currentTopic) return;
     const growthUrl = getGrowthApiUrl();
-    const trimmedKey = (apiKey || "").trim();
     setIsLoading(true);
     setErrorMessage("");
     if (growthUrl) {
       setStatusMessage("Contacting Growth API for live projection.");
     } else {
-      setStatusMessage(trimmedKey ? "Contacting Gemini with your API key for live projection." : "Contacting Gemini service for live projection.");
+      setStatusMessage("Contacting Gemini service for live projection.");
     }
     let data = null;
     let source = "illustrative";
@@ -43955,7 +43902,7 @@ var VisualizerApp = () => {
       setGrowthActive(false);
     }
     if (!data) {
-      const result = await getProjectedGrowthData(currentTopic, trimmedKey);
+      const result = await getProjectedGrowthData(currentTopic);
       if (result.ok) {
         data = result.data;
         source = "gemini";
@@ -43970,8 +43917,8 @@ var VisualizerApp = () => {
         setSourceLabel("Growth API");
         setErrorMessage("");
       } else if (source === "gemini") {
-        setStatusMessage(trimmedKey ? "Live Gemini projection (user key)" : "Live Gemini projection");
-        setSourceLabel(trimmedKey ? "Gemini (user key)" : "Gemini");
+        setStatusMessage("Live Gemini projection");
+        setSourceLabel("Gemini");
         if (growthError) {
           setErrorMessage(`Growth API unavailable (${growthError}). Gemini fallback active.`);
         } else {
@@ -43989,15 +43936,15 @@ var VisualizerApp = () => {
       } else if (growthUrl) {
         setErrorMessage("Growth API returned no data. Gemini fallback unavailable.");
       } else {
-        setErrorMessage("Gemini service unavailable. Add your own API key or try again soon.");
+        setErrorMessage("Gemini service unavailable. Try again soon.");
       }
       setLastUpdated(null);
     }
     setIsLoading(false);
-  }, [apiKey]);
+  }, []);
   (0, import_react49.useEffect)(() => {
     runProjection(topic);
-  }, [topic, apiKey, runProjection]);
+  }, [topic, runProjection]);
   const handleTopicSubmit = (nextTopic) => {
     const trimmed = (nextTopic || "").trim();
     if (!trimmed || trimmed === topic) return;
@@ -44006,16 +43953,6 @@ var VisualizerApp = () => {
   const handlePresetSelect = (preset) => {
     setTopicDraft(preset);
     setTopic(preset);
-  };
-  const handleSaveKey = (value) => {
-    setApiKey(value);
-    setApiKeyDraft(value);
-    persistKey(value);
-  };
-  const handleClearKey = () => {
-    setApiKey("");
-    setApiKeyDraft("");
-    persistKey("");
   };
   const headerStats = (0, import_react49.useMemo)(() => ({
     statusMessage,
@@ -44030,11 +43967,6 @@ var VisualizerApp = () => {
       onTopicSubmit: handleTopicSubmit,
       onPresetSelect: handlePresetSelect,
       isLoading,
-      apiKeyDraft,
-      onApiKeyDraftChange: setApiKeyDraft,
-      onSaveKey: handleSaveKey,
-      onClearKey: handleClearKey,
-      hasStoredKey: Boolean(apiKey),
       presets: sampleTopics,
       growthActive,
       statusMessage,

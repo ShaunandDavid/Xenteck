@@ -12,7 +12,6 @@ import { fetchGrowthApi, getGrowthApiUrl } from './services/growthService.js';
 import { getProjectedGrowthData } from './services/geminiService.js';
 
 const DEFAULT_TOPIC = 'AI Growth';
-const LOCAL_STORAGE_KEY = 'xenteck_gemini_key';
 const sampleTopics = [
   'Autonomous Logistics',
   'GenAI Sales Co-Pilots',
@@ -23,31 +22,6 @@ const sampleTopics = [
   'Intelligent Edge Vision',
   'Predictive Healthcare Agents'
 ];
-
-const getStoredKey = () => {
-  try {
-    if ('localStorage' in window) {
-      return localStorage.getItem(LOCAL_STORAGE_KEY) || '';
-    }
-  } catch (_) {
-    // ignore
-  }
-  return '';
-};
-
-const persistKey = (value) => {
-  try {
-    if ('localStorage' in window) {
-      if (value) {
-        localStorage.setItem(LOCAL_STORAGE_KEY, value);
-      } else {
-        localStorage.removeItem(LOCAL_STORAGE_KEY);
-      }
-    }
-  } catch (_) {
-    // ignore
-  }
-};
 
 const getInitialTopic = () => {
   try {
@@ -78,13 +52,9 @@ const createFallbackProjection = (topic) => {
 
 const VisualizerApp = () => {
   const initialTopic = getInitialTopic();
-  const storedKey = typeof window !== 'undefined' ? getStoredKey() : '';
-  const initialKey = storedKey;
 
   const [topic, setTopic] = useState(initialTopic);
   const [topicDraft, setTopicDraft] = useState(initialTopic);
-  const [apiKey, setApiKey] = useState(initialKey);
-  const [apiKeyDraft, setApiKeyDraft] = useState(initialKey);
   const [projectionData, setProjectionData] = useState(() => createFallbackProjection(initialTopic));
   const [statusMessage, setStatusMessage] = useState('Illustrative projection. Growth API or Gemini live data will appear here when available.');
   const [sourceLabel, setSourceLabel] = useState('Illustrative');
@@ -101,16 +71,13 @@ const VisualizerApp = () => {
     if (!currentTopic) return;
 
     const growthUrl = getGrowthApiUrl();
-    const trimmedKey = (apiKey || '').trim();
 
     setIsLoading(true);
     setErrorMessage('');
     if (growthUrl) {
       setStatusMessage('Contacting Growth API for live projection.');
     } else {
-      setStatusMessage(trimmedKey
-        ? 'Contacting Gemini with your API key for live projection.'
-        : 'Contacting Gemini service for live projection.');
+      setStatusMessage('Contacting Gemini service for live projection.');
     }
 
     let data = null;
@@ -132,7 +99,7 @@ const VisualizerApp = () => {
     }
 
     if (!data) {
-      const result = await getProjectedGrowthData(currentTopic, trimmedKey);
+      const result = await getProjectedGrowthData(currentTopic);
       if (result.ok) {
         data = result.data;
         source = 'gemini';
@@ -148,8 +115,8 @@ const VisualizerApp = () => {
         setSourceLabel('Growth API');
         setErrorMessage('');
       } else if (source === 'gemini') {
-        setStatusMessage(trimmedKey ? 'Live Gemini projection (user key)' : 'Live Gemini projection');
-        setSourceLabel(trimmedKey ? 'Gemini (user key)' : 'Gemini');
+        setStatusMessage('Live Gemini projection');
+        setSourceLabel('Gemini');
         if (growthError) {
           setErrorMessage(`Growth API unavailable (${growthError}). Gemini fallback active.`);
         } else {
@@ -167,17 +134,17 @@ const VisualizerApp = () => {
       } else if (growthUrl) {
         setErrorMessage('Growth API returned no data. Gemini fallback unavailable.');
       } else {
-        setErrorMessage('Gemini service unavailable. Add your own API key or try again soon.');
+        setErrorMessage('Gemini service unavailable. Try again soon.');
       }
       setLastUpdated(null);
     }
 
     setIsLoading(false);
-  }, [apiKey]);
+  }, []);
 
   useEffect(() => {
     runProjection(topic);
-  }, [topic, apiKey, runProjection]);
+  }, [topic, runProjection]);
 
   const handleTopicSubmit = (nextTopic) => {
     const trimmed = (nextTopic || '').trim();
@@ -188,18 +155,6 @@ const VisualizerApp = () => {
   const handlePresetSelect = (preset) => {
     setTopicDraft(preset);
     setTopic(preset);
-  };
-
-  const handleSaveKey = (value) => {
-    setApiKey(value);
-    setApiKeyDraft(value);
-    persistKey(value);
-  };
-
-  const handleClearKey = () => {
-    setApiKey('');
-    setApiKeyDraft('');
-    persistKey('');
   };
 
   const headerStats = useMemo(() => ({
@@ -259,11 +214,6 @@ const VisualizerApp = () => {
           onTopicSubmit={handleTopicSubmit}
           onPresetSelect={handlePresetSelect}
           isLoading={isLoading}
-          apiKeyDraft={apiKeyDraft}
-          onApiKeyDraftChange={setApiKeyDraft}
-          onSaveKey={handleSaveKey}
-          onClearKey={handleClearKey}
-          hasStoredKey={Boolean(apiKey)}
           presets={sampleTopics}
           growthActive={growthActive}
           statusMessage={statusMessage}

@@ -17,26 +17,16 @@ const ChatWindow = ({
   onTopicSubmit,
   onPresetSelect,
   isLoading,
-  apiKeyDraft,
-  onApiKeyDraftChange,
-  onSaveKey,
-  onClearKey,
-  hasStoredKey,
   presets = DEFAULT_PRESETS,
   growthActive,
   statusMessage,
   sourceLabel
 }) => {
   const [localTopic, setLocalTopic] = useState(topicDraft);
-  const [localKey, setLocalKey] = useState(apiKeyDraft);
 
   useEffect(() => {
     setLocalTopic(topicDraft);
   }, [topicDraft]);
-
-  useEffect(() => {
-    setLocalKey(apiKeyDraft);
-  }, [apiKeyDraft]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -58,16 +48,6 @@ const ChatWindow = ({
     onPresetSelect(preset);
   };
 
-  const handleKeyInput = (event) => {
-    const value = event.target.value;
-    setLocalKey(value);
-    onApiKeyDraftChange(value);
-  };
-
-  const handleSaveKey = () => {
-    onSaveKey((localKey || '').trim());
-  };
-
   return (
     <aside className="ai-panel ai-panel--sidebar">
       <div className="ai-panel__heading">
@@ -84,27 +64,6 @@ const ChatWindow = ({
       </div>
 
       <form className="ai-form" onSubmit={handleSubmit}>
-        <div className="ai-form__group">
-          <span className="ai-form__label">Gemini API key</span>
-          <div className="ai-form__row">
-            <input
-              className="ai-input"
-              type="password"
-              placeholder="galaxy-..."
-              value={localKey}
-              onChange={handleKeyInput}
-            />
-            <button className="ai-button" type="button" onClick={handleSaveKey}>
-              Save key
-            </button>
-          </div>
-          {hasStoredKey && (
-            <button className="ai-link" type="button" onClick={onClearKey}>
-              Remove stored key
-            </button>
-          )}
-        </div>
-
         <div className="ai-form__group">
           <span className="ai-form__label">Projection topic</span>
           <input
