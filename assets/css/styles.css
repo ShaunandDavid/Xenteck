@@ -461,7 +461,7 @@ body.menu-open .mobile-panel { display: block; opacity: 1; transform: translateY
 .ai-chart-shell {
   position: relative;
   width: 100%;
-  min-height: 260px;
+  min-height: clamp(320px, 48vh, 420px);
 }
 .ai-chart-shell > div {
   position: absolute;
