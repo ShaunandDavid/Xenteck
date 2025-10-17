@@ -43844,42 +43844,65 @@ var getInitialTopic = () => {
   }
 };
 var getTopicSeed = (topic) => topic.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
-var createAggressiveProjection = (topic, startYear = (/* @__PURE__ */ new Date()).getUTCFullYear() - 3, span = 14) => {
+var buildAggressiveCurve = ({
+  topic,
+  startYear,
+  span,
+  startValue,
+  targetValue
+}) => {
   const seed = getTopicSeed(topic);
-  const base = 90 + seed % 70;
-  const amplitude = 880 + seed % 240;
-  const maxScore = 1250;
-  const steepness = 6.2 + seed % 20 / 10;
-  const midpoint = 0.38 + seed % 40 / 200;
+  const clippedTarget = Math.min(1350, Math.max(startValue + 320, targetValue));
+  const steepness = 5.2 + seed % 25 / 6;
+  const midpoint = 0.33 + seed % 40 / 170;
   const logistic = (value) => 1 / (1 + Math.exp(-steepness * (value - midpoint)));
   return Array.from({ length: span }, (_, index) => {
     const progress = index / Math.max(span - 1, 1);
-    const advancement = Math.min(
-      maxScore,
-      Math.round(base + logistic(progress) * amplitude)
-    );
+    const baseValue = startValue + logistic(progress) * (clippedTarget - startValue);
+    const jitter = Math.sin(seed + index * 1.72) * 12 + Math.cos(seed / 3 + index * 0.6) * 6;
+    const advancement = Math.min(1350, Math.round(baseValue + jitter));
     let milestone;
-    if (index === Math.round(span * 0.2)) {
+    if (index === Math.round(span * 0.18)) {
       milestone = `${topic} pilots trigger board-level urgency.`;
-    } else if (index === Math.round(span * 0.55)) {
+    } else if (index === Math.round(span * 0.52)) {
       milestone = `${topic} becomes a cross-industry default.`;
     } else if (index === span - 1) {
       milestone = `${topic} rewires operating models globally.`;
     }
-    return {
-      year: startYear + index,
-      advancement,
-      milestone
-    };
+    return { year: startYear + index, advancement, milestone };
   });
 };
 var synthesiseProjection = (topic, source = []) => {
-  if (!Array.isArray(source) || !source.length) {
-    return createAggressiveProjection(topic);
+  const now = (/* @__PURE__ */ new Date()).getUTCFullYear();
+  if (Array.isArray(source) && source.length) {
+    const sorted = [...source].sort((a2, b) => a2.year - b.year);
+    const first = sorted[0];
+    const last2 = sorted[sorted.length - 1];
+    const span = Math.max(sorted.length + 6, 14);
+    const startValue2 = Math.max(30, Math.round(first.advancement * 0.85));
+    const projectedTarget = Math.max(
+      startValue2 + 380,
+      Math.round(last2.advancement * 1.65 + 180)
+    );
+    return buildAggressiveCurve({
+      topic,
+      startYear: first.year,
+      span,
+      startValue: startValue2,
+      targetValue: projectedTarget
+    });
   }
-  const sorted = [...source].sort((a2, b) => a2.year - b.year);
-  const startYear = sorted[0]?.year ?? (/* @__PURE__ */ new Date()).getUTCFullYear() - 3;
-  return createAggressiveProjection(topic, startYear, Math.max(sorted.length, 14));
+  const seed = getTopicSeed(topic);
+  const startYear = now - 4 + seed % 3;
+  const startValue = 60 + seed % 40;
+  const targetValue = 1080 + seed % 180;
+  return buildAggressiveCurve({
+    topic,
+    startYear,
+    span: 15,
+    startValue,
+    targetValue
+  });
 };
 var VisualizerApp = () => {
   const initialTopic = getInitialTopic();

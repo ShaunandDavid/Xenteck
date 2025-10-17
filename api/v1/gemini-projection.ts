@@ -154,39 +154,78 @@ const parseGeminiResponse = (payload: unknown): GeminiPoint[] => {
   }
 };
 
-const synthesiseAggressiveTrajectory = (topic: string, sourcePoints: GeminiPoint[]): GeminiPoint[] => {
-  const sorted = [...sourcePoints].sort((a, b) => a.year - b.year);
-  const now = new Date().getUTCFullYear();
-  const startYear = sorted[0]?.year ?? now - 3;
-  const totalYears = Math.max(sorted.length, 14);
-  const years = Array.from({ length: totalYears }, (_, index) => startYear + index);
-
-  const seed = topic
-    .split('')
-    .reduce((sum, char) => sum + char.charCodeAt(0), 0);
-  const base = 90 + (seed % 70);
-  const amplitude = 880 + (seed % 240);
-  const maxScore = 1250;
-  const steepness = 6.2 + (seed % 20) / 10;
-  const midpoint = 0.38 + (seed % 40) / 200;
-
+const buildAggressiveCurve = ({
+  topic,
+  startYear,
+  span,
+  startValue,
+  targetValue
+}: {
+  topic: string;
+  startYear: number;
+  span: number;
+  startValue: number;
+  targetValue: number;
+}): GeminiPoint[] => {
+  const seed = topic.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  const clippedTarget = Math.min(1350, Math.max(startValue + 320, targetValue));
+  const steepness = 5.2 + (seed % 25) / 6;
+  const midpoint = 0.33 + (seed % 40) / 170;
   const logistic = (value: number) => 1 / (1 + Math.exp(-steepness * (value - midpoint)));
 
-  return years.map((year, index) => {
-    const progress = index / Math.max(years.length - 1, 1);
-    const curve = logistic(progress);
-    const advancement = Math.min(maxScore, Math.round(base + curve * amplitude));
+  return Array.from({ length: span }, (_, index) => {
+    const progress = index / Math.max(span - 1, 1);
+    const baseValue = startValue + logistic(progress) * (clippedTarget - startValue);
+    const jitter =
+      Math.sin(seed + index * 1.72) * 12 + Math.cos(seed / 3 + index * 0.6) * 6;
+    const advancement = Math.min(1350, Math.round(baseValue + jitter));
 
     let milestone: string | undefined;
-    if (index === Math.round(years.length * 0.2)) {
+    if (index === Math.round(span * 0.18)) {
       milestone = `${topic} pilots trigger board-level urgency.`;
-    } else if (index === Math.round(years.length * 0.55)) {
+    } else if (index === Math.round(span * 0.52)) {
       milestone = `${topic} becomes an industry-wide default.`;
-    } else if (index === years.length - 1) {
+    } else if (index === span - 1) {
       milestone = `${topic} rewires operating models globally.`;
     }
 
-    return { year, advancement, milestone };
+    return { year: startYear + index, advancement, milestone };
+  });
+};
+
+const synthesiseAggressiveTrajectory = (topic: string, sourcePoints: GeminiPoint[]): GeminiPoint[] => {
+  const now = new Date().getUTCFullYear();
+
+  if (sourcePoints.length) {
+    const sorted = [...sourcePoints].sort((a, b) => a.year - b.year);
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
+    const span = Math.max(sorted.length + 6, 14);
+    const startValue = Math.max(30, Math.round(first.advancement * 0.85));
+    const projectedTarget = Math.max(
+      startValue + 380,
+      Math.round(last.advancement * 1.65 + 180)
+    );
+
+    return buildAggressiveCurve({
+      topic,
+      startYear: first.year,
+      span,
+      startValue,
+      targetValue: projectedTarget
+    });
+  }
+
+  const seed = topic.split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  const startYear = now - 4 + (seed % 3);
+  const startValue = 60 + (seed % 40);
+  const targetValue = 1080 + (seed % 180);
+  return buildAggressiveCurve({
+    topic,
+    startYear,
+    span: 15,
+    startValue,
+    targetValue
   });
 };
 
