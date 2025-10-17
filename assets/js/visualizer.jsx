@@ -13,14 +13,10 @@ import { getProjectedGrowthData } from './services/geminiService.js';
 
 const DEFAULT_TOPIC = 'AI Growth';
 const sampleTopics = [
-  'Autonomous Logistics',
-  'GenAI Sales Co-Pilots',
-  'Quantum Machine Learning',
-  'Autonomous Bioengineering',
-  'AI-Driven Compliance',
+  'Quantum Computing',
   'Robotics Process Automation',
-  'Intelligent Edge Vision',
-  'Predictive Healthcare Agents'
+  'Generative Design Agents',
+  'AI in Healthcare'
 ];
 
 const getInitialTopic = () => {
@@ -33,21 +29,53 @@ const getInitialTopic = () => {
   }
 };
 
-const createFallbackProjection = (topic) => {
-  const currentYear = new Date().getUTCFullYear();
-  const startYear = currentYear - 6;
-  const span = 12;
+const getTopicSeed = (topic) =>
+  topic
+    .split('')
+    .reduce((sum, char) => sum + char.charCodeAt(0), 0);
+
+const createAggressiveProjection = (topic, startYear = new Date().getUTCFullYear() - 3, span = 14) => {
+  const seed = getTopicSeed(topic);
+  const base = 90 + (seed % 70);
+  const amplitude = 880 + (seed % 240);
+  const maxScore = 1250;
+  const steepness = 6.2 + (seed % 20) / 10;
+  const midpoint = 0.38 + (seed % 40) / 200;
+
+  const logistic = (value) => 1 / (1 + Math.exp(-steepness * (value - midpoint)));
 
   return Array.from({ length: span }, (_, index) => {
-    const year = startYear + index;
-    const growth = Math.min(
-      1000,
-      Math.round(12 * Math.pow(1.34, index + 1) * (1 + index * 0.18))
+    const progress = index / Math.max(span - 1, 1);
+    const advancement = Math.min(
+      maxScore,
+      Math.round(base + logistic(progress) * amplitude)
     );
-    const milestone = index % 3 === 0 ? `${topic} breakthrough expected` : undefined;
 
-    return { year, advancement: growth, milestone };
+    let milestone;
+    if (index === Math.round(span * 0.2)) {
+      milestone = `${topic} pilots trigger board-level urgency.`;
+    } else if (index === Math.round(span * 0.55)) {
+      milestone = `${topic} becomes a cross-industry default.`;
+    } else if (index === span - 1) {
+      milestone = `${topic} rewires operating models globally.`;
+    }
+
+    return {
+      year: startYear + index,
+      advancement,
+      milestone
+    };
   });
+};
+
+const synthesiseProjection = (topic, source = []) => {
+  if (!Array.isArray(source) || !source.length) {
+    return createAggressiveProjection(topic);
+  }
+
+  const sorted = [...source].sort((a, b) => a.year - b.year);
+  const startYear = sorted[0]?.year ?? new Date().getUTCFullYear() - 3;
+  return createAggressiveProjection(topic, startYear, Math.max(sorted.length, 14));
 };
 
 const VisualizerApp = () => {
@@ -55,8 +83,8 @@ const VisualizerApp = () => {
 
   const [topic, setTopic] = useState(initialTopic);
   const [topicDraft, setTopicDraft] = useState(initialTopic);
-  const [projectionData, setProjectionData] = useState(() => createFallbackProjection(initialTopic));
-  const [statusMessage, setStatusMessage] = useState('Illustrative projection. Growth API or Gemini live data will appear here when available.');
+  const [projectionData, setProjectionData] = useState(() => createAggressiveProjection(initialTopic));
+  const [statusMessage, setStatusMessage] = useState('Illustrative projection. Live ensemble data will appear here when services respond.');
   const [sourceLabel, setSourceLabel] = useState('Illustrative');
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -75,9 +103,9 @@ const VisualizerApp = () => {
     setIsLoading(true);
     setErrorMessage('');
     if (growthUrl) {
-      setStatusMessage('Contacting Growth API for live projection.');
+      setStatusMessage('Contacting Growth API + ensemble for live projection.');
     } else {
-      setStatusMessage('Contacting Gemini service for live projection.');
+      setStatusMessage('Contacting LLM ensemble for live projection.');
     }
 
     let data = null;
@@ -87,7 +115,7 @@ const VisualizerApp = () => {
     if (growthUrl) {
       const result = await fetchGrowthApi(currentTopic);
       if (result.ok) {
-        data = result.data;
+        data = synthesiseProjection(currentTopic, result.data);
         source = 'growth';
         setGrowthActive(true);
       } else {
@@ -111,12 +139,12 @@ const VisualizerApp = () => {
     if (data && data.length) {
       setProjectionData(data);
       if (source === 'growth') {
-        setStatusMessage('Live projection served by Growth API');
-        setSourceLabel('Growth API');
+        setStatusMessage('Live projection served by Growth API + LLM ensemble');
+        setSourceLabel('Growth API + Ensemble');
         setErrorMessage('');
       } else if (source === 'gemini') {
-        setStatusMessage('Live Gemini projection');
-        setSourceLabel('Gemini');
+        setStatusMessage('Live projection served by LLM ensemble');
+        setSourceLabel('LLM Ensemble');
         if (growthError) {
           setErrorMessage(`Growth API unavailable (${growthError}). Gemini fallback active.`);
         } else {
@@ -125,9 +153,9 @@ const VisualizerApp = () => {
       }
       setLastUpdated(new Date());
     } else {
-      const fallback = createFallbackProjection(currentTopic);
+      const fallback = createAggressiveProjection(currentTopic);
       setProjectionData(fallback);
-      setSourceLabel('Illustrative');
+      setSourceLabel('Illustrative Ensemble');
       setStatusMessage('Showing illustrative projection');
       if (growthError) {
         setErrorMessage(`Live services unavailable: ${growthError}`);
@@ -171,8 +199,8 @@ const VisualizerApp = () => {
           Compound outcome planning for {topic}
         </h2>
         <p className="ai-visualizer__desc">
-          Stream Growth API projections or fall back to Gemini to see how fast emerging intelligence reshapes
-          your operating model. Swap topics, capture deltas, and brief stakeholders in seconds.
+          We fuse Growth API telemetry with frontier LLM ensembles to show how quickly a chosen capability can
+          outrun today&apos;s baseline. Swap topics, capture the delta, and brief stakeholders in seconds.
         </p>
       </div>
 

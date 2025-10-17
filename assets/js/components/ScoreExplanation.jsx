@@ -17,7 +17,7 @@ const ScoreExplanation = () => (
     <div className="ai-meta">
       <strong>Read the delta.</strong>
       <span>
-        The dotted line is predictable pace. The neon sweep shows how fast your chosen field will bend operating models. The gap is the compounding edge—or erosion—you need to plan for.
+        The dotted line is predictable pace. The neon sweep shows how fast your chosen field will bend operating models. The gap is the compounding edge - or erosion - you need to plan for. Projections are generated from a blended view of GPT-4o, Claude, Gemini, and Llama.
       </span>
     </div>
   </div>

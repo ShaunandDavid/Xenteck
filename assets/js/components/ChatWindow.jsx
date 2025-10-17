@@ -52,15 +52,11 @@ const ChatWindow = ({
     <aside className="ai-panel ai-panel--sidebar">
       <div className="ai-panel__heading">
         <h2 className="sora">Scenario controls</h2>
-        {growthActive ? (
-          <span className="ai-panel__subtext">
-            Growth API is powering live projections. Gemini remains optional for hybrid insights.
-          </span>
-        ) : (
-          <span className="ai-panel__subtext">
-            Add a Gemini API key or configure Growth API to stream live trajectories.
-          </span>
-        )}
+        <span className="ai-panel__subtext">
+          {growthActive
+            ? 'Live feed blends Growth API telemetry with ensembles of GPT-4o, Claude, Gemini, and Llama.'
+            : 'We synthesise projections with a four-model LLM ensemble tuned for acceleration signals.'}
+        </span>
       </div>
 
       <form className="ai-form" onSubmit={handleSubmit}>

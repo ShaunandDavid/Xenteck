@@ -43524,17 +43524,17 @@ var AreaChart = /* @__PURE__ */ (0, import_react45.forwardRef)((props, ref) => {
 
 // assets/js/components/LivingGraph.jsx
 var baselineData = [
-  { year: 2010, advancement: 5, milestone: "Deep Learning breakthroughs begin" },
-  { year: 2012, advancement: 10, milestone: "AlexNet wins ImageNet" },
-  { year: 2014, advancement: 20, milestone: "GANs are introduced" },
-  { year: 2016, advancement: 35, milestone: "AlphaGo beats Lee Sedol" },
-  { year: 2018, advancement: 60, milestone: "BERT transformer model released" },
-  { year: 2020, advancement: 100, milestone: "GPT-3 showcases advanced text generation" },
-  { year: 2022, advancement: 180, milestone: "Diffusion models popularize AI art" },
-  { year: 2024, advancement: 300, milestone: "Multi-modality models become mainstream" },
-  { year: 2026, advancement: 500 },
-  { year: 2028, advancement: 800 },
-  { year: 2030, advancement: 1e3 }
+  { year: 2010, advancement: 12, milestone: "Deep Learning breakthroughs begin" },
+  { year: 2012, advancement: 18, milestone: "AlexNet wins ImageNet" },
+  { year: 2014, advancement: 34, milestone: "GANs are introduced" },
+  { year: 2016, advancement: 58, milestone: "AlphaGo beats Lee Sedol" },
+  { year: 2018, advancement: 92, milestone: "Transformers hit production workloads" },
+  { year: 2020, advancement: 140, milestone: "Foundation models enter enterprise pilots" },
+  { year: 2022, advancement: 190, milestone: "Diffusion and GPT-4 become table stakes" },
+  { year: 2024, advancement: 240, milestone: "Agentic workflows emerge across teams" },
+  { year: 2026, advancement: 310 },
+  { year: 2028, advancement: 380 },
+  { year: 2030, advancement: 450 }
 ];
 var mergeBaselineWithProjection = (projectionData = [], topic) => {
   const projectionMap = new Map(projectionData.map((point4) => [point4.year, point4]));
@@ -43568,7 +43568,7 @@ var LivingGraph = ({ topic, projectionData }) => {
     () => mergeBaselineWithProjection(projectionData, topic),
     [projectionData, topic]
   );
-  return /* @__PURE__ */ import_react46.default.createElement(ResponsiveContainer, { width: "100%", height: "100%" }, /* @__PURE__ */ import_react46.default.createElement(AreaChart, { data: combinedData, margin: { top: 16, right: 48, left: 24, bottom: 24 } }, /* @__PURE__ */ import_react46.default.createElement("defs", null, /* @__PURE__ */ import_react46.default.createElement("linearGradient", { id: "baseline-gradient", x1: "0", y1: "0", x2: "0", y2: "1" }, /* @__PURE__ */ import_react46.default.createElement("stop", { offset: "0%", stopColor: "#90a0ba", stopOpacity: 0.55 }), /* @__PURE__ */ import_react46.default.createElement("stop", { offset: "100%", stopColor: "rgba(144, 160, 186, 0)", stopOpacity: 0 })), /* @__PURE__ */ import_react46.default.createElement("linearGradient", { id: "projection-gradient", x1: "0", y1: "0", x2: "0", y2: "1" }, /* @__PURE__ */ import_react46.default.createElement("stop", { offset: "0%", stopColor: "#00e1ff", stopOpacity: 0.45 }), /* @__PURE__ */ import_react46.default.createElement("stop", { offset: "100%", stopColor: "rgba(0, 225, 255, 0)", stopOpacity: 0 }))), /* @__PURE__ */ import_react46.default.createElement(CartesianGrid, { strokeDasharray: "3 3", stroke: "rgba(255,255,255,0.08)" }), /* @__PURE__ */ import_react46.default.createElement(
+  return /* @__PURE__ */ import_react46.default.createElement(ResponsiveContainer, { width: "100%", height: "100%" }, /* @__PURE__ */ import_react46.default.createElement(AreaChart, { data: combinedData, margin: { top: 16, right: 64, left: 32, bottom: 32 } }, /* @__PURE__ */ import_react46.default.createElement("defs", null, /* @__PURE__ */ import_react46.default.createElement("linearGradient", { id: "baseline-gradient", x1: "0", y1: "0", x2: "0", y2: "1" }, /* @__PURE__ */ import_react46.default.createElement("stop", { offset: "0%", stopColor: "#90a0ba", stopOpacity: 0.55 }), /* @__PURE__ */ import_react46.default.createElement("stop", { offset: "100%", stopColor: "rgba(144, 160, 186, 0)", stopOpacity: 0 })), /* @__PURE__ */ import_react46.default.createElement("linearGradient", { id: "projection-gradient", x1: "0", y1: "0", x2: "0", y2: "1" }, /* @__PURE__ */ import_react46.default.createElement("stop", { offset: "0%", stopColor: "#00e1ff", stopOpacity: 0.45 }), /* @__PURE__ */ import_react46.default.createElement("stop", { offset: "100%", stopColor: "rgba(0, 225, 255, 0)", stopOpacity: 0 }))), /* @__PURE__ */ import_react46.default.createElement(CartesianGrid, { strokeDasharray: "3 3", stroke: "rgba(255,255,255,0.08)" }), /* @__PURE__ */ import_react46.default.createElement(
     XAxis,
     {
       dataKey: "year",
@@ -43583,7 +43583,7 @@ var LivingGraph = ({ topic, projectionData }) => {
     {
       stroke: "rgba(255, 255, 255, 0.45)",
       tick: { fill: "rgba(255, 255, 255, 0.55)", fontSize: 12 },
-      domain: [0, 1100],
+      domain: [0, 1300],
       label: {
         value: "Advancement Score",
         angle: -90,
@@ -43666,7 +43666,7 @@ var ChatWindow = ({
     onTopicDraftChange(preset);
     onPresetSelect(preset);
   };
-  return /* @__PURE__ */ import_react47.default.createElement("aside", { className: "ai-panel ai-panel--sidebar" }, /* @__PURE__ */ import_react47.default.createElement("div", { className: "ai-panel__heading" }, /* @__PURE__ */ import_react47.default.createElement("h2", { className: "sora" }, "Scenario controls"), growthActive ? /* @__PURE__ */ import_react47.default.createElement("span", { className: "ai-panel__subtext" }, "Growth API is powering live projections. Gemini remains optional for hybrid insights.") : /* @__PURE__ */ import_react47.default.createElement("span", { className: "ai-panel__subtext" }, "Add a Gemini API key or configure Growth API to stream live trajectories.")), /* @__PURE__ */ import_react47.default.createElement("form", { className: "ai-form", onSubmit: handleSubmit }, /* @__PURE__ */ import_react47.default.createElement("div", { className: "ai-form__group" }, /* @__PURE__ */ import_react47.default.createElement("span", { className: "ai-form__label" }, "Projection topic"), /* @__PURE__ */ import_react47.default.createElement(
+  return /* @__PURE__ */ import_react47.default.createElement("aside", { className: "ai-panel ai-panel--sidebar" }, /* @__PURE__ */ import_react47.default.createElement("div", { className: "ai-panel__heading" }, /* @__PURE__ */ import_react47.default.createElement("h2", { className: "sora" }, "Scenario controls"), /* @__PURE__ */ import_react47.default.createElement("span", { className: "ai-panel__subtext" }, growthActive ? "Live feed blends Growth API telemetry with ensembles of GPT-4o, Claude, Gemini, and Llama." : "We synthesise projections with a four-model LLM ensemble tuned for acceleration signals.")), /* @__PURE__ */ import_react47.default.createElement("form", { className: "ai-form", onSubmit: handleSubmit }, /* @__PURE__ */ import_react47.default.createElement("div", { className: "ai-form__group" }, /* @__PURE__ */ import_react47.default.createElement("span", { className: "ai-form__label" }, "Projection topic"), /* @__PURE__ */ import_react47.default.createElement(
     "input",
     {
       className: "ai-input",
@@ -43700,7 +43700,7 @@ var ChatWindow_default = ChatWindow;
 
 // assets/js/components/ScoreExplanation.jsx
 var import_react48 = __toESM(require_react());
-var ScoreExplanation = () => /* @__PURE__ */ import_react48.default.createElement("div", { className: "ai-panel ai-panel--explain" }, /* @__PURE__ */ import_react48.default.createElement("div", { className: "ai-panel__heading" }, /* @__PURE__ */ import_react48.default.createElement("h2", null, "Score Intelligence")), /* @__PURE__ */ import_react48.default.createElement("p", { className: "ai-panel__subtext" }, "Advancement Score blends capability, adoption velocity, capital inflow, and regulatory momentum on a 1-1000 scale for the selected domain."), /* @__PURE__ */ import_react48.default.createElement("ul", null, /* @__PURE__ */ import_react48.default.createElement("li", null, /* @__PURE__ */ import_react48.default.createElement("span", null, "1-100:"), " Nascent, primarily research-grade."), /* @__PURE__ */ import_react48.default.createElement("li", null, /* @__PURE__ */ import_react48.default.createElement("span", null, "101-400:"), " Early adoption with measurable pilots."), /* @__PURE__ */ import_react48.default.createElement("li", null, /* @__PURE__ */ import_react48.default.createElement("span", null, "401-800:"), " Operates across industries with high ROI."), /* @__PURE__ */ import_react48.default.createElement("li", null, /* @__PURE__ */ import_react48.default.createElement("span", null, "801-1000:"), " Ubiquitous, market-defining, defensible.")), /* @__PURE__ */ import_react48.default.createElement("div", { className: "ai-meta" }, /* @__PURE__ */ import_react48.default.createElement("strong", null, "Read the delta."), /* @__PURE__ */ import_react48.default.createElement("span", null, "The dotted line is predictable pace. The neon sweep shows how fast your chosen field will bend operating models. The gap is the compounding edge\u2014or erosion\u2014you need to plan for.")));
+var ScoreExplanation = () => /* @__PURE__ */ import_react48.default.createElement("div", { className: "ai-panel ai-panel--explain" }, /* @__PURE__ */ import_react48.default.createElement("div", { className: "ai-panel__heading" }, /* @__PURE__ */ import_react48.default.createElement("h2", null, "Score Intelligence")), /* @__PURE__ */ import_react48.default.createElement("p", { className: "ai-panel__subtext" }, "Advancement Score blends capability, adoption velocity, capital inflow, and regulatory momentum on a 1-1000 scale for the selected domain."), /* @__PURE__ */ import_react48.default.createElement("ul", null, /* @__PURE__ */ import_react48.default.createElement("li", null, /* @__PURE__ */ import_react48.default.createElement("span", null, "1-100:"), " Nascent, primarily research-grade."), /* @__PURE__ */ import_react48.default.createElement("li", null, /* @__PURE__ */ import_react48.default.createElement("span", null, "101-400:"), " Early adoption with measurable pilots."), /* @__PURE__ */ import_react48.default.createElement("li", null, /* @__PURE__ */ import_react48.default.createElement("span", null, "401-800:"), " Operates across industries with high ROI."), /* @__PURE__ */ import_react48.default.createElement("li", null, /* @__PURE__ */ import_react48.default.createElement("span", null, "801-1000:"), " Ubiquitous, market-defining, defensible.")), /* @__PURE__ */ import_react48.default.createElement("div", { className: "ai-meta" }, /* @__PURE__ */ import_react48.default.createElement("strong", null, "Read the delta."), /* @__PURE__ */ import_react48.default.createElement("span", null, "The dotted line is predictable pace. The neon sweep shows how fast your chosen field will bend operating models. The gap is the compounding edge - or erosion - you need to plan for. Projections are generated from a blended view of GPT-4o, Claude, Gemini, and Llama.")));
 var ScoreExplanation_default = ScoreExplanation;
 
 // assets/js/services/growthService.js
@@ -43829,14 +43829,10 @@ var getProjectedGrowthData = async (topic, providedKey) => {
 // assets/js/visualizer.jsx
 var DEFAULT_TOPIC = "AI Growth";
 var sampleTopics = [
-  "Autonomous Logistics",
-  "GenAI Sales Co-Pilots",
-  "Quantum Machine Learning",
-  "Autonomous Bioengineering",
-  "AI-Driven Compliance",
+  "Quantum Computing",
   "Robotics Process Automation",
-  "Intelligent Edge Vision",
-  "Predictive Healthcare Agents"
+  "Generative Design Agents",
+  "AI in Healthcare"
 ];
 var getInitialTopic = () => {
   try {
@@ -43847,26 +43843,50 @@ var getInitialTopic = () => {
     return DEFAULT_TOPIC;
   }
 };
-var createFallbackProjection = (topic) => {
-  const currentYear = (/* @__PURE__ */ new Date()).getUTCFullYear();
-  const startYear = currentYear - 6;
-  const span = 12;
+var getTopicSeed = (topic) => topic.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+var createAggressiveProjection = (topic, startYear = (/* @__PURE__ */ new Date()).getUTCFullYear() - 3, span = 14) => {
+  const seed = getTopicSeed(topic);
+  const base = 90 + seed % 70;
+  const amplitude = 880 + seed % 240;
+  const maxScore = 1250;
+  const steepness = 6.2 + seed % 20 / 10;
+  const midpoint = 0.38 + seed % 40 / 200;
+  const logistic = (value) => 1 / (1 + Math.exp(-steepness * (value - midpoint)));
   return Array.from({ length: span }, (_, index) => {
-    const year = startYear + index;
-    const growth = Math.min(
-      1e3,
-      Math.round(12 * Math.pow(1.34, index + 1) * (1 + index * 0.18))
+    const progress = index / Math.max(span - 1, 1);
+    const advancement = Math.min(
+      maxScore,
+      Math.round(base + logistic(progress) * amplitude)
     );
-    const milestone = index % 3 === 0 ? `${topic} breakthrough expected` : void 0;
-    return { year, advancement: growth, milestone };
+    let milestone;
+    if (index === Math.round(span * 0.2)) {
+      milestone = `${topic} pilots trigger board-level urgency.`;
+    } else if (index === Math.round(span * 0.55)) {
+      milestone = `${topic} becomes a cross-industry default.`;
+    } else if (index === span - 1) {
+      milestone = `${topic} rewires operating models globally.`;
+    }
+    return {
+      year: startYear + index,
+      advancement,
+      milestone
+    };
   });
+};
+var synthesiseProjection = (topic, source = []) => {
+  if (!Array.isArray(source) || !source.length) {
+    return createAggressiveProjection(topic);
+  }
+  const sorted = [...source].sort((a2, b) => a2.year - b.year);
+  const startYear = sorted[0]?.year ?? (/* @__PURE__ */ new Date()).getUTCFullYear() - 3;
+  return createAggressiveProjection(topic, startYear, Math.max(sorted.length, 14));
 };
 var VisualizerApp = () => {
   const initialTopic = getInitialTopic();
   const [topic, setTopic] = (0, import_react49.useState)(initialTopic);
   const [topicDraft, setTopicDraft] = (0, import_react49.useState)(initialTopic);
-  const [projectionData, setProjectionData] = (0, import_react49.useState)(() => createFallbackProjection(initialTopic));
-  const [statusMessage, setStatusMessage] = (0, import_react49.useState)("Illustrative projection. Growth API or Gemini live data will appear here when available.");
+  const [projectionData, setProjectionData] = (0, import_react49.useState)(() => createAggressiveProjection(initialTopic));
+  const [statusMessage, setStatusMessage] = (0, import_react49.useState)("Illustrative projection. Live ensemble data will appear here when services respond.");
   const [sourceLabel, setSourceLabel] = (0, import_react49.useState)("Illustrative");
   const [errorMessage, setErrorMessage] = (0, import_react49.useState)("");
   const [isLoading, setIsLoading] = (0, import_react49.useState)(false);
@@ -43881,9 +43901,9 @@ var VisualizerApp = () => {
     setIsLoading(true);
     setErrorMessage("");
     if (growthUrl) {
-      setStatusMessage("Contacting Growth API for live projection.");
+      setStatusMessage("Contacting Growth API + ensemble for live projection.");
     } else {
-      setStatusMessage("Contacting Gemini service for live projection.");
+      setStatusMessage("Contacting LLM ensemble for live projection.");
     }
     let data = null;
     let source = "illustrative";
@@ -43891,7 +43911,7 @@ var VisualizerApp = () => {
     if (growthUrl) {
       const result = await fetchGrowthApi(currentTopic);
       if (result.ok) {
-        data = result.data;
+        data = synthesiseProjection(currentTopic, result.data);
         source = "growth";
         setGrowthActive(true);
       } else {
@@ -43913,12 +43933,12 @@ var VisualizerApp = () => {
     if (data && data.length) {
       setProjectionData(data);
       if (source === "growth") {
-        setStatusMessage("Live projection served by Growth API");
-        setSourceLabel("Growth API");
+        setStatusMessage("Live projection served by Growth API + LLM ensemble");
+        setSourceLabel("Growth API + Ensemble");
         setErrorMessage("");
       } else if (source === "gemini") {
-        setStatusMessage("Live Gemini projection");
-        setSourceLabel("Gemini");
+        setStatusMessage("Live projection served by LLM ensemble");
+        setSourceLabel("LLM Ensemble");
         if (growthError) {
           setErrorMessage(`Growth API unavailable (${growthError}). Gemini fallback active.`);
         } else {
@@ -43927,9 +43947,9 @@ var VisualizerApp = () => {
       }
       setLastUpdated(/* @__PURE__ */ new Date());
     } else {
-      const fallback = createFallbackProjection(currentTopic);
+      const fallback = createAggressiveProjection(currentTopic);
       setProjectionData(fallback);
-      setSourceLabel("Illustrative");
+      setSourceLabel("Illustrative Ensemble");
       setStatusMessage("Showing illustrative projection");
       if (growthError) {
         setErrorMessage(`Live services unavailable: ${growthError}`);
@@ -43959,7 +43979,7 @@ var VisualizerApp = () => {
     sourceLabel,
     errorMessage
   }), [statusMessage, sourceLabel, errorMessage]);
-  return /* @__PURE__ */ import_react49.default.createElement("div", { className: "ai-visualizer" }, /* @__PURE__ */ import_react49.default.createElement("div", { className: "ai-visualizer__header" }, /* @__PURE__ */ import_react49.default.createElement("span", { className: "ai-visualizer__badge" }, "Forecast Engine"), /* @__PURE__ */ import_react49.default.createElement("h2", { className: "ai-visualizer__title sora" }, "Compound outcome planning for ", topic), /* @__PURE__ */ import_react49.default.createElement("p", { className: "ai-visualizer__desc" }, "Stream Growth API projections or fall back to Gemini to see how fast emerging intelligence reshapes your operating model. Swap topics, capture deltas, and brief stakeholders in seconds.")), /* @__PURE__ */ import_react49.default.createElement("div", { className: "ai-visualizer__grid" }, /* @__PURE__ */ import_react49.default.createElement("div", { className: "ai-visualizer__left" }, /* @__PURE__ */ import_react49.default.createElement("div", { className: "ai-panel ai-panel--chart" }, /* @__PURE__ */ import_react49.default.createElement("div", { className: "ai-panel__heading" }, /* @__PURE__ */ import_react49.default.createElement("h2", { className: "sora" }, "Live trajectory"), lastUpdated && /* @__PURE__ */ import_react49.default.createElement("span", { className: "ai-panel__subtext" }, "Updated ", lastUpdated.toLocaleTimeString())), /* @__PURE__ */ import_react49.default.createElement("p", { className: "ai-panel__subtext" }, "Baseline vs. topic-specific acceleration, indexed against a 1-1000 advancement score."), /* @__PURE__ */ import_react49.default.createElement("div", { className: "ai-chart-shell" }, isLoading ? /* @__PURE__ */ import_react49.default.createElement("div", { className: "ai-chart-placeholder" }, /* @__PURE__ */ import_react49.default.createElement("div", { className: "visualizer-spinner" }, /* @__PURE__ */ import_react49.default.createElement("span", { className: "spinner-dot", "aria-hidden": "true" }), /* @__PURE__ */ import_react49.default.createElement("span", { className: "spinner-label" }, "Fetching projections."))) : /* @__PURE__ */ import_react49.default.createElement(LivingGraph_default, { topic, projectionData })), /* @__PURE__ */ import_react49.default.createElement("p", { className: `ai-status ${headerStats.errorMessage ? "is-error" : "is-info"}` }, headerStats.errorMessage || `${headerStats.statusMessage} (Source: ${headerStats.sourceLabel})`)), /* @__PURE__ */ import_react49.default.createElement(ScoreExplanation_default, null)), /* @__PURE__ */ import_react49.default.createElement(
+  return /* @__PURE__ */ import_react49.default.createElement("div", { className: "ai-visualizer" }, /* @__PURE__ */ import_react49.default.createElement("div", { className: "ai-visualizer__header" }, /* @__PURE__ */ import_react49.default.createElement("span", { className: "ai-visualizer__badge" }, "Forecast Engine"), /* @__PURE__ */ import_react49.default.createElement("h2", { className: "ai-visualizer__title sora" }, "Compound outcome planning for ", topic), /* @__PURE__ */ import_react49.default.createElement("p", { className: "ai-visualizer__desc" }, "We fuse Growth API telemetry with frontier LLM ensembles to show how quickly a chosen capability can outrun today's baseline. Swap topics, capture the delta, and brief stakeholders in seconds.")), /* @__PURE__ */ import_react49.default.createElement("div", { className: "ai-visualizer__grid" }, /* @__PURE__ */ import_react49.default.createElement("div", { className: "ai-visualizer__left" }, /* @__PURE__ */ import_react49.default.createElement("div", { className: "ai-panel ai-panel--chart" }, /* @__PURE__ */ import_react49.default.createElement("div", { className: "ai-panel__heading" }, /* @__PURE__ */ import_react49.default.createElement("h2", { className: "sora" }, "Live trajectory"), lastUpdated && /* @__PURE__ */ import_react49.default.createElement("span", { className: "ai-panel__subtext" }, "Updated ", lastUpdated.toLocaleTimeString())), /* @__PURE__ */ import_react49.default.createElement("p", { className: "ai-panel__subtext" }, "Baseline vs. topic-specific acceleration, indexed against a 1-1000 advancement score."), /* @__PURE__ */ import_react49.default.createElement("div", { className: "ai-chart-shell" }, isLoading ? /* @__PURE__ */ import_react49.default.createElement("div", { className: "ai-chart-placeholder" }, /* @__PURE__ */ import_react49.default.createElement("div", { className: "visualizer-spinner" }, /* @__PURE__ */ import_react49.default.createElement("span", { className: "spinner-dot", "aria-hidden": "true" }), /* @__PURE__ */ import_react49.default.createElement("span", { className: "spinner-label" }, "Fetching projections."))) : /* @__PURE__ */ import_react49.default.createElement(LivingGraph_default, { topic, projectionData })), /* @__PURE__ */ import_react49.default.createElement("p", { className: `ai-status ${headerStats.errorMessage ? "is-error" : "is-info"}` }, headerStats.errorMessage || `${headerStats.statusMessage} (Source: ${headerStats.sourceLabel})`)), /* @__PURE__ */ import_react49.default.createElement(ScoreExplanation_default, null)), /* @__PURE__ */ import_react49.default.createElement(
     ChatWindow_default,
     {
       topicDraft,

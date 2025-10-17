@@ -11,17 +11,17 @@ import {
 } from 'recharts';
 
 const baselineData = [
-  { year: 2010, advancement: 5, milestone: 'Deep Learning breakthroughs begin' },
-  { year: 2012, advancement: 10, milestone: 'AlexNet wins ImageNet' },
-  { year: 2014, advancement: 20, milestone: 'GANs are introduced' },
-  { year: 2016, advancement: 35, milestone: 'AlphaGo beats Lee Sedol' },
-  { year: 2018, advancement: 60, milestone: 'BERT transformer model released' },
-  { year: 2020, advancement: 100, milestone: 'GPT-3 showcases advanced text generation' },
-  { year: 2022, advancement: 180, milestone: 'Diffusion models popularize AI art' },
-  { year: 2024, advancement: 300, milestone: 'Multi-modality models become mainstream' },
-  { year: 2026, advancement: 500 },
-  { year: 2028, advancement: 800 },
-  { year: 2030, advancement: 1000 }
+  { year: 2010, advancement: 12, milestone: 'Deep Learning breakthroughs begin' },
+  { year: 2012, advancement: 18, milestone: 'AlexNet wins ImageNet' },
+  { year: 2014, advancement: 34, milestone: 'GANs are introduced' },
+  { year: 2016, advancement: 58, milestone: 'AlphaGo beats Lee Sedol' },
+  { year: 2018, advancement: 92, milestone: 'Transformers hit production workloads' },
+  { year: 2020, advancement: 140, milestone: 'Foundation models enter enterprise pilots' },
+  { year: 2022, advancement: 190, milestone: 'Diffusion and GPT-4 become table stakes' },
+  { year: 2024, advancement: 240, milestone: 'Agentic workflows emerge across teams' },
+  { year: 2026, advancement: 310 },
+  { year: 2028, advancement: 380 },
+  { year: 2030, advancement: 450 }
 ];
 
 const mergeBaselineWithProjection = (projectionData = [], topic) => {
@@ -88,7 +88,7 @@ const LivingGraph = ({ topic, projectionData }) => {
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <AreaChart data={combinedData} margin={{ top: 16, right: 48, left: 24, bottom: 24 }}>
+      <AreaChart data={combinedData} margin={{ top: 16, right: 64, left: 32, bottom: 32 }}>
         <defs>
           <linearGradient id="baseline-gradient" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#90a0ba" stopOpacity={0.55} />
@@ -111,7 +111,7 @@ const LivingGraph = ({ topic, projectionData }) => {
         <YAxis
           stroke="rgba(255, 255, 255, 0.45)"
           tick={{ fill: 'rgba(255, 255, 255, 0.55)', fontSize: 12 }}
-          domain={[0, 1100]}
+          domain={[0, 1300]}
           label={{
             value: 'Advancement Score',
             angle: -90,

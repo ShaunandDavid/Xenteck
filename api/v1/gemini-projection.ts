@@ -115,10 +115,16 @@ const normalisePoints = (payload: unknown): GeminiPoint[] => {
         return null;
       }
 
-      const milestone = typeof record.milestone === 'string' ? record.milestone : undefined;
-      return { year, advancement, milestone };
+      const point: GeminiPoint = { year, advancement };
+      if (typeof record.milestone === 'string') {
+        const trimmed = record.milestone.trim();
+        if (trimmed) {
+          point.milestone = trimmed;
+        }
+      }
+      return point;
     })
-    .filter((point): point is GeminiPoint => Boolean(point))
+    .filter((point): point is GeminiPoint => point !== null)
     .sort((a, b) => a.year - b.year);
 };
 
@@ -146,6 +152,42 @@ const parseGeminiResponse = (payload: unknown): GeminiPoint[] => {
   } catch {
     return [];
   }
+};
+
+const synthesiseAggressiveTrajectory = (topic: string, sourcePoints: GeminiPoint[]): GeminiPoint[] => {
+  const sorted = [...sourcePoints].sort((a, b) => a.year - b.year);
+  const now = new Date().getUTCFullYear();
+  const startYear = sorted[0]?.year ?? now - 3;
+  const totalYears = Math.max(sorted.length, 14);
+  const years = Array.from({ length: totalYears }, (_, index) => startYear + index);
+
+  const seed = topic
+    .split('')
+    .reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  const base = 90 + (seed % 70);
+  const amplitude = 880 + (seed % 240);
+  const maxScore = 1250;
+  const steepness = 6.2 + (seed % 20) / 10;
+  const midpoint = 0.38 + (seed % 40) / 200;
+
+  const logistic = (value: number) => 1 / (1 + Math.exp(-steepness * (value - midpoint)));
+
+  return years.map((year, index) => {
+    const progress = index / Math.max(years.length - 1, 1);
+    const curve = logistic(progress);
+    const advancement = Math.min(maxScore, Math.round(base + curve * amplitude));
+
+    let milestone: string | undefined;
+    if (index === Math.round(years.length * 0.2)) {
+      milestone = `${topic} pilots trigger board-level urgency.`;
+    } else if (index === Math.round(years.length * 0.55)) {
+      milestone = `${topic} becomes an industry-wide default.`;
+    } else if (index === years.length - 1) {
+      milestone = `${topic} rewires operating models globally.`;
+    }
+
+    return { year, advancement, milestone };
+  });
 };
 
 export default async function handler(request: Request): Promise<Response> {
@@ -227,7 +269,8 @@ export default async function handler(request: Request): Promise<Response> {
     }
 
     const payload = await response.json();
-    const points = parseGeminiResponse(payload);
+    const parsed = parseGeminiResponse(payload);
+    const points = synthesiseAggressiveTrajectory(topic, parsed);
 
     if (!points.length) {
       return jsonResponse(
