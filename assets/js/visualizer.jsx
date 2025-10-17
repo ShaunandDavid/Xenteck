@@ -78,18 +78,15 @@ const createFallbackProjection = (topic) => {
 
 const VisualizerApp = () => {
   const initialTopic = getInitialTopic();
-  const envKey = typeof window !== 'undefined' && window.ENV?.GEMINI_API_KEY
-    ? String(window.ENV.GEMINI_API_KEY).trim()
-    : '';
   const storedKey = typeof window !== 'undefined' ? getStoredKey() : '';
-  const initialKey = envKey || storedKey;
+  const initialKey = storedKey;
 
   const [topic, setTopic] = useState(initialTopic);
   const [topicDraft, setTopicDraft] = useState(initialTopic);
   const [apiKey, setApiKey] = useState(initialKey);
   const [apiKeyDraft, setApiKeyDraft] = useState(initialKey);
   const [projectionData, setProjectionData] = useState(() => createFallbackProjection(initialTopic));
-  const [statusMessage, setStatusMessage] = useState('Illustrative projection. Configure Growth API or add a Gemini key to activate live data.');
+  const [statusMessage, setStatusMessage] = useState('Illustrative projection. Growth API or Gemini live data will appear here when available.');
   const [sourceLabel, setSourceLabel] = useState('Illustrative');
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -110,10 +107,10 @@ const VisualizerApp = () => {
     setErrorMessage('');
     if (growthUrl) {
       setStatusMessage('Contacting Growth API for live projection.');
-    } else if (trimmedKey) {
-      setStatusMessage('Contacting Gemini for live projection.');
     } else {
-      setStatusMessage('Illustrative projection. Add a Gemini key or configure Growth API to unlock live feeds.');
+      setStatusMessage(trimmedKey
+        ? 'Contacting Gemini with your API key for live projection.'
+        : 'Contacting Gemini service for live projection.');
     }
 
     let data = null;
@@ -134,12 +131,12 @@ const VisualizerApp = () => {
       setGrowthActive(false);
     }
 
-    if (!data && trimmedKey) {
+    if (!data) {
       const result = await getProjectedGrowthData(currentTopic, trimmedKey);
       if (result.ok) {
         data = result.data;
         source = 'gemini';
-      } else if (result.reason !== 'no-key') {
+      } else {
         growthError = result.message || result.reason || 'Gemini projection failed';
       }
     }
@@ -151,8 +148,8 @@ const VisualizerApp = () => {
         setSourceLabel('Growth API');
         setErrorMessage('');
       } else if (source === 'gemini') {
-        setStatusMessage('Live Gemini projection');
-        setSourceLabel('Gemini');
+        setStatusMessage(trimmedKey ? 'Live Gemini projection (user key)' : 'Live Gemini projection');
+        setSourceLabel(trimmedKey ? 'Gemini (user key)' : 'Gemini');
         if (growthError) {
           setErrorMessage(`Growth API unavailable (${growthError}). Gemini fallback active.`);
         } else {
@@ -167,10 +164,10 @@ const VisualizerApp = () => {
       setStatusMessage('Showing illustrative projection');
       if (growthError) {
         setErrorMessage(`Live services unavailable: ${growthError}`);
-      } else if (!trimmedKey) {
-        setErrorMessage('Add a Gemini key or configure Growth API to activate live projections.');
+      } else if (growthUrl) {
+        setErrorMessage('Growth API returned no data. Gemini fallback unavailable.');
       } else {
-        setErrorMessage('Unable to fetch live projection.');
+        setErrorMessage('Gemini service unavailable. Add your own API key or try again soon.');
       }
       setLastUpdated(null);
     }

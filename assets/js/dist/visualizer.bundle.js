@@ -43783,113 +43783,72 @@ var fetchGrowthApi = async (topic) => {
 };
 
 // assets/js/services/geminiService.js
-var MODEL_NAME = "gemini-2.5-flash";
-var API_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent`;
-var systemInstruction = `
-You are a technology futurist and data analyst. Your task is to generate a projected growth trajectory for a specific field of Artificial Intelligence provided by the user.
-You must respond with only a JSON array of objects. Do not include any other text, explanation, or markdown formatting.
-Each object in the array represents a data point with a 'year', a numeric 'advancement' score (from 1 to 1000, where 1 is nascent and 1000 is transformative), and an optional 'milestone' string.
-The data should start from a plausible year of inception for the given topic and project about 15-20 years into the future.
-The growth curve should be exponential, reflecting the accelerating nature of AI development.
-`.trim();
-var responseSchema = {
-  type: "ARRAY",
-  items: {
-    type: "OBJECT",
-    properties: {
-      year: { type: "NUMBER" },
-      advancement: { type: "NUMBER" },
-      milestone: { type: "STRING" }
-    },
-    required: ["year", "advancement"]
+var GEMINI_ENDPOINT = "/api/v1/gemini-projection";
+var normalisePoints = (payload = []) => {
+  if (!Array.isArray(payload)) {
+    return [];
   }
-};
-var normalisePoints = (payload) => payload.map((point4) => ({
-  year: Number(point4.year),
-  advancement: Number(point4.advancement),
-  milestone: point4.milestone || void 0
-})).filter((point4) => Number.isFinite(point4.year) && Number.isFinite(point4.advancement)).sort((a2, b) => a2.year - b.year);
-var getEnvKey = () => {
-  if (typeof window === "undefined") return "";
-  const value = window.ENV?.GEMINI_API_KEY ?? "";
-  return value ? String(value).trim() : "";
-};
-var extractTextFromResponse = (payload) => {
-  if (!payload?.candidates?.length) {
-    return "";
-  }
-  for (const candidate of payload.candidates) {
-    const parts = candidate?.content?.parts;
-    if (Array.isArray(parts)) {
-      const text = parts.map((part) => part?.text).filter(Boolean).join("\n").trim();
-      if (text) return text;
-    }
-  }
-  return "";
-};
-var parseGeminiPayload = (payload) => {
-  const text = extractTextFromResponse(payload);
-  if (!text) {
-    throw new Error("Gemini response did not include a text payload");
-  }
-  const cleaned = text.replace(/^```json\s*/i, "").replace(/```$/i, "").trim();
-  const json = JSON.parse(cleaned);
-  if (!Array.isArray(json)) {
-    throw new Error("Gemini payload did not resolve to an array");
-  }
-  return normalisePoints(json);
+  return payload.map((point4) => ({
+    year: Number(point4.year),
+    advancement: Number(point4.advancement),
+    milestone: point4.milestone || void 0
+  })).filter((point4) => Number.isFinite(point4.year) && Number.isFinite(point4.advancement)).sort((a2, b) => a2.year - b.year);
 };
 var getProjectedGrowthData = async (topic, providedKey) => {
-  const apiKey = providedKey && providedKey.trim() || getEnvKey();
-  if (!apiKey) {
-    return { ok: false, reason: "no-key" };
+  const trimmedTopic = (topic || "").trim();
+  if (!trimmedTopic) {
+    return { ok: false, reason: "missing-topic" };
   }
-  const url = `${API_ENDPOINT}?key=${encodeURIComponent(apiKey)}`;
-  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-  const timeoutId = controller ? setTimeout(() => controller.abort(), 12e3) : null;
+  const body = { topic: trimmedTopic };
+  const trimmedKey = (providedKey || "").trim();
+  if (trimmedKey) {
+    body.apiKey = trimmedKey;
+  }
   try {
-    const response = await fetch(url, {
+    const response = await fetch(GEMINI_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        systemInstruction: {
-          role: "system",
-          parts: [{ text: systemInstruction }]
-        },
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: `Generate the growth trajectory for: "${topic}"` }]
-          }
-        ],
-        generationConfig: {
-          responseMimeType: "application/json"
-        },
-        responseSchema
-      }),
-      signal: controller?.signal
+      body: JSON.stringify(body)
     });
     if (!response.ok) {
-      const errorText = await response.text();
-      console.warn("[Visualizer] Gemini HTTP error", response.status, errorText);
-      return { ok: false, reason: `http-${response.status}`, message: errorText };
+      let message = "Gemini proxy returned an error response.";
+      try {
+        const errorPayload = await response.clone().json();
+        message = errorPayload?.error?.message || message;
+      } catch {
+        const errorText = await response.text();
+        message = errorText || message;
+      }
+      return {
+        ok: false,
+        reason: `http-${response.status}`,
+        message
+      };
     }
     const payload = await response.json();
-    const data = parseGeminiPayload(payload);
+    if (!payload?.ok) {
+      return {
+        ok: false,
+        reason: payload?.error?.code || "proxy-error",
+        message: payload?.error?.message
+      };
+    }
+    const data = normalisePoints(payload.data);
     if (!data.length) {
       return { ok: false, reason: "empty" };
     }
-    return { ok: true, data, source: "gemini" };
+    return {
+      ok: true,
+      data,
+      source: payload.source || "gemini"
+    };
   } catch (error) {
-    if (timeoutId) clearTimeout(timeoutId);
-    console.error("[Visualizer] Gemini projection failed", error);
+    console.error("[Visualizer] Gemini proxy request failed", error);
     return {
       ok: false,
-      reason: error?.name === "AbortError" ? "timeout" : "error",
+      reason: "network-error",
       message: error instanceof Error ? error.message : String(error)
     };
-  } finally {
-    if (timeoutId) clearTimeout(timeoutId);
   }
 };
 
@@ -43952,15 +43911,14 @@ var createFallbackProjection = (topic) => {
 };
 var VisualizerApp = () => {
   const initialTopic = getInitialTopic();
-  const envKey = typeof window !== "undefined" && window.ENV?.GEMINI_API_KEY ? String(window.ENV.GEMINI_API_KEY).trim() : "";
   const storedKey = typeof window !== "undefined" ? getStoredKey() : "";
-  const initialKey = envKey || storedKey;
+  const initialKey = storedKey;
   const [topic, setTopic] = (0, import_react49.useState)(initialTopic);
   const [topicDraft, setTopicDraft] = (0, import_react49.useState)(initialTopic);
   const [apiKey, setApiKey] = (0, import_react49.useState)(initialKey);
   const [apiKeyDraft, setApiKeyDraft] = (0, import_react49.useState)(initialKey);
   const [projectionData, setProjectionData] = (0, import_react49.useState)(() => createFallbackProjection(initialTopic));
-  const [statusMessage, setStatusMessage] = (0, import_react49.useState)("Illustrative projection. Configure Growth API or add a Gemini key to activate live data.");
+  const [statusMessage, setStatusMessage] = (0, import_react49.useState)("Illustrative projection. Growth API or Gemini live data will appear here when available.");
   const [sourceLabel, setSourceLabel] = (0, import_react49.useState)("Illustrative");
   const [errorMessage, setErrorMessage] = (0, import_react49.useState)("");
   const [isLoading, setIsLoading] = (0, import_react49.useState)(false);
@@ -43977,10 +43935,8 @@ var VisualizerApp = () => {
     setErrorMessage("");
     if (growthUrl) {
       setStatusMessage("Contacting Growth API for live projection.");
-    } else if (trimmedKey) {
-      setStatusMessage("Contacting Gemini for live projection.");
     } else {
-      setStatusMessage("Illustrative projection. Add a Gemini key or configure Growth API to unlock live feeds.");
+      setStatusMessage(trimmedKey ? "Contacting Gemini with your API key for live projection." : "Contacting Gemini service for live projection.");
     }
     let data = null;
     let source = "illustrative";
@@ -43998,12 +43954,12 @@ var VisualizerApp = () => {
     } else {
       setGrowthActive(false);
     }
-    if (!data && trimmedKey) {
+    if (!data) {
       const result = await getProjectedGrowthData(currentTopic, trimmedKey);
       if (result.ok) {
         data = result.data;
         source = "gemini";
-      } else if (result.reason !== "no-key") {
+      } else {
         growthError = result.message || result.reason || "Gemini projection failed";
       }
     }
@@ -44014,8 +43970,8 @@ var VisualizerApp = () => {
         setSourceLabel("Growth API");
         setErrorMessage("");
       } else if (source === "gemini") {
-        setStatusMessage("Live Gemini projection");
-        setSourceLabel("Gemini");
+        setStatusMessage(trimmedKey ? "Live Gemini projection (user key)" : "Live Gemini projection");
+        setSourceLabel(trimmedKey ? "Gemini (user key)" : "Gemini");
         if (growthError) {
           setErrorMessage(`Growth API unavailable (${growthError}). Gemini fallback active.`);
         } else {
@@ -44030,10 +43986,10 @@ var VisualizerApp = () => {
       setStatusMessage("Showing illustrative projection");
       if (growthError) {
         setErrorMessage(`Live services unavailable: ${growthError}`);
-      } else if (!trimmedKey) {
-        setErrorMessage("Add a Gemini key or configure Growth API to activate live projections.");
+      } else if (growthUrl) {
+        setErrorMessage("Growth API returned no data. Gemini fallback unavailable.");
       } else {
-        setErrorMessage("Unable to fetch live projection.");
+        setErrorMessage("Gemini service unavailable. Add your own API key or try again soon.");
       }
       setLastUpdated(null);
     }

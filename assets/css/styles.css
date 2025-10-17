@@ -238,6 +238,67 @@ body.menu-open .mobile-panel { display: block; opacity: 1; transform: translateY
   line-height: 1.6;
   max-width: 32rem;
 }
+.hero--paused .hero-video,
+.hero--paused .hero-inner {
+  opacity: 0;
+  pointer-events: none;
+}
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: clamp(2rem, 6vw, 4rem);
+  background:
+    radial-gradient(60% 60% at 50% 30%, rgba(0, 225, 255, 0.28), rgba(8, 12, 28, 0.9)),
+    rgba(8, 12, 28, 0.88);
+}
+.hero-overlay__inner {
+  max-width: min(720px, 100%);
+  display: grid;
+  gap: 1.4rem;
+}
+.hero-overlay__badge {
+  align-self: center;
+  display: inline-flex;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: rgba(0, 225, 255, 0.16);
+  color: var(--neon);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+.hero-overlay__title {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+}
+.hero-overlay__desc {
+  margin: 0 auto;
+  max-width: 54ch;
+  color: rgba(216, 226, 255, 0.82);
+  line-height: 1.65;
+  font-size: 1.05rem;
+}
+.hero-overlay__note {
+  margin: 0;
+  color: rgba(216, 226, 255, 0.7);
+  font-size: 0.95rem;
+}
+.hero-overlay__note a {
+  color: var(--neon);
+  font-weight: 600;
+  text-decoration: none;
+}
+.hero-overlay__note a:hover,
+.hero-overlay__note a:focus-visible {
+  text-decoration: underline;
+}
 .section-visualizer {
   padding: clamp(4rem, 8vh, 6.5rem) 0;
 }
