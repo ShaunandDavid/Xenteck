@@ -2,6 +2,7 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState
 } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -10,6 +11,17 @@ import ChatWindow from './components/ChatWindow.jsx';
 import ScoreExplanation from './components/ScoreExplanation.jsx';
 import { fetchGrowthApi, getGrowthApiUrl } from './services/growthService.js';
 import { getProjectedGrowthData } from './services/geminiService.js';
+import { fetchInterestTrends } from './services/momentumService.js';
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend
+} from 'recharts';
 
 const DEFAULT_TOPIC = 'AI Growth';
 const sampleTopics = [
@@ -99,6 +111,380 @@ const synthesiseProjection = (topic, source = []) => {
     startValue,
     targetValue
   });
+};
+
+const generateBaselineSeries = (topic, startYear, span) => {
+  const seed = getTopicSeed(`${topic}-baseline`);
+  return Array.from({ length: span }, (_, index) => {
+    const progress = index / Math.max(span - 1, 1);
+    const baseline =
+      75 +
+      progress * 320 +
+      Math.sin(seed / 3 + index * 0.72) * 9 +
+      Math.cos(seed / 5 + index * 0.66) * 5;
+    return {
+      year: startYear + index,
+      baseline: Math.round(Math.max(20, baseline))
+    };
+  });
+};
+
+const mergeSeries = (baselineSeries, momentumSeries) => {
+  const baselineMap = new Map(baselineSeries.map((point) => [point.year, point]));
+  const momentumMap = new Map(momentumSeries.map((point) => [point.year, point]));
+  const years = new Set([...baselineMap.keys(), ...momentumMap.keys()]);
+
+  return Array.from(years)
+    .sort((a, b) => a - b)
+    .map((year) => {
+      const baselinePoint = baselineMap.get(year);
+      const momentumPoint = momentumMap.get(year);
+      return {
+        year,
+        baseline: baselinePoint?.baseline ?? null,
+        advancement: momentumPoint?.advancement ?? null,
+        milestone: momentumPoint?.milestone
+      };
+    });
+};
+
+const buildMomentumFrame = (topic, sourcePoints = []) => {
+  const momentumSeries = synthesiseProjection(topic, sourcePoints);
+  const startYear = momentumSeries[0]?.year ?? new Date().getUTCFullYear() - 4;
+  const span = Math.max(momentumSeries.length, 15);
+  const baselineSeries = generateBaselineSeries(topic, startYear, span);
+  const combined = mergeSeries(baselineSeries, momentumSeries);
+
+  const firstPoint = combined[0] ?? {
+    year: startYear,
+    advancement: 120,
+    baseline: 90
+  };
+  const lastPoint = combined[combined.length - 1] ?? firstPoint;
+  const backIndex = Math.max(combined.length - 4, 0);
+  const trailingPoint = combined[backIndex] ?? firstPoint;
+
+  const delta = Math.max(
+    0,
+    Math.round((lastPoint.advancement ?? 0) - (lastPoint.baseline ?? 0))
+  );
+  const velocity = Math.round(
+    (lastPoint.advancement ?? 0) - (trailingPoint.advancement ?? firstPoint.advancement ?? 0)
+  );
+  const growthMultiple = Number(
+    (
+      (lastPoint.advancement ?? 1) /
+      Math.max(firstPoint.advancement ?? 1, 1)
+    ).toFixed(1)
+  );
+
+  const nextMilestone =
+    momentumSeries.find((point) => point.milestone)?.milestone ||
+    `${topic} breaks through incumbents.`;
+
+  return {
+    dataset: combined,
+    summary: {
+      delta,
+      velocity,
+      growthMultiple,
+      horizon: lastPoint.year ?? startYear + span - 1,
+      nextMilestone
+    }
+  };
+};
+
+const numberFormatter = new Intl.NumberFormat('en-US', {
+  maximumFractionDigits: 0
+});
+
+const velocityFormatter = new Intl.NumberFormat('en-US', {
+  maximumFractionDigits: 0,
+  signDisplay: 'always'
+});
+
+const multipleFormatter = new Intl.NumberFormat('en-US', {
+  maximumFractionDigits: 1
+});
+
+const MomentumTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) {
+    return null;
+  }
+
+  const advancement = payload.find((entry) => entry.dataKey === 'advancement');
+  const baseline = payload.find((entry) => entry.dataKey === 'baseline');
+  const milestone = advancement?.payload?.milestone;
+
+  return (
+    <div className="ai-panel ai-panel--tooltip">
+      <p className="label sora" style={{ fontWeight: 600, margin: 0 }}>
+        Year {label}
+      </p>
+      {advancement && (
+        <p style={{ margin: '.35rem 0', color: 'rgba(0, 225, 255, .9)' }}>
+          Momentum: {numberFormatter.format(advancement.value)}
+        </p>
+      )}
+      {baseline && (
+        <p style={{ margin: 0, color: 'rgba(201, 210, 224, .8)' }}>
+          Baseline: {numberFormatter.format(baseline.value)}
+        </p>
+      )}
+      {milestone && (
+        <p style={{ marginTop: '.6rem', color: 'rgba(255, 202, 87, .9)', fontSize: '.82rem' }}>
+          {milestone}
+        </p>
+      )}
+    </div>
+  );
+};
+
+const MomentumHero = () => {
+  const initialTopic = sampleTopics[0];
+  const [inputValue, setInputValue] = useState(initialTopic);
+  const [activeTopic, setActiveTopic] = useState(initialTopic);
+  const [frame, setFrame] = useState(() => buildMomentumFrame(initialTopic));
+  const [statusLabel, setStatusLabel] = useState('LLM Ensemble');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDebouncing, setIsDebouncing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
+  const debounceRef = useRef(null);
+
+  const loadMomentum = useCallback(
+    async (topic) => {
+      if (!topic) return;
+      setIsLoading(true);
+      setErrorMessage('');
+      let sourcePoints = [];
+      let liveLabel = 'LLM Ensemble';
+
+      const response = await fetchInterestTrends(topic);
+      if (response.ok && response.data.length) {
+        sourcePoints = response.data;
+        liveLabel = 'Growth Feed + Ensemble';
+      } else if (!response.ok) {
+        setErrorMessage(
+          response.message || 'Signal feed unavailable. Using ensemble projection.'
+        );
+      }
+
+      const nextFrame = buildMomentumFrame(topic, sourcePoints);
+      setFrame(nextFrame);
+      setStatusLabel(liveLabel);
+      setLastUpdated(new Date());
+      setIsLoading(false);
+    },
+    []
+  );
+
+  useEffect(() => {
+    loadMomentum(activeTopic);
+  }, [activeTopic, loadMomentum]);
+
+  useEffect(
+    () => () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    },
+    []
+  );
+
+  const handleInputChange = (event) => {
+    const value = event.target.value;
+    setInputValue(value);
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    if (!value.trim()) {
+      setIsDebouncing(false);
+      return;
+    }
+    setIsDebouncing(true);
+    debounceRef.current = window.setTimeout(() => {
+      setActiveTopic(value.trim());
+      setIsDebouncing(false);
+    }, 480);
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      setIsDebouncing(false);
+    }
+    const trimmed = inputValue.trim();
+    if (trimmed && trimmed !== activeTopic) {
+      setActiveTopic(trimmed);
+    }
+  };
+
+  const handleSuggestion = (topic) => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    setInputValue(topic);
+    setIsDebouncing(false);
+    if (topic !== activeTopic) {
+      setActiveTopic(topic);
+    }
+  };
+
+  const hint = errorMessage
+    ? errorMessage
+    : isLoading
+    ? 'Crunching live telemetry…'
+    : isDebouncing
+    ? 'Syncing feed…'
+    : 'Type a capability or tap a chip to bend the curve.';
+
+  const summary = frame.summary;
+  const deltaLabel = `${summary.delta > 0 ? '+' : ''}${numberFormatter.format(summary.delta)} pts`;
+  const velocityLabel = `${velocityFormatter.format(summary.velocity)} / yr`;
+  const multipleLabel = `${multipleFormatter.format(summary.growthMultiple)}×`;
+  const sourceChipClass =
+    statusLabel === 'Growth Feed + Ensemble' ? 'status-chip status-chip--live' : 'status-chip';
+
+  const chartData = frame.dataset;
+  const loadingOverlay = isLoading || isDebouncing;
+
+  return (
+    <>
+      <div className="momentum-panel__top">
+        <div>
+          <span className="momentum-pill">Tech Momentum</span>
+          <h2>{activeTopic}</h2>
+        </div>
+        <div className="momentum-status">
+          <span className={sourceChipClass}>{statusLabel}</span>
+          <span className="status-chip">GPT-4o · Claude · Gemini · Llama</span>
+          <small>
+            {lastUpdated
+              ? `Updated ${lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+              : 'Awaiting feed…'}
+          </small>
+        </div>
+      </div>
+      <div className="momentum-shell">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={chartData} margin={{ top: 12, right: 16, left: 0, bottom: 12 }}>
+            <defs>
+              <linearGradient id="momentum-baseline" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#8DA0BF" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="rgba(141, 160, 191, 0)" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="momentum-curve" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#00e1ff" stopOpacity={0.55} />
+                <stop offset="100%" stopColor="rgba(0, 225, 255, 0)" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid stroke="rgba(255,255,255,0.08)" horizontal vertical={false} />
+            <XAxis
+              dataKey="year"
+              stroke="rgba(255, 255, 255, 0.42)"
+              tick={{ fill: 'rgba(255, 255, 255, 0.55)', fontSize: 12 }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              stroke="rgba(255, 255, 255, 0.42)"
+              tick={{ fill: 'rgba(255, 255, 255, 0.55)', fontSize: 12 }}
+              domain={[0, 1350]}
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip content={<MomentumTooltip />} />
+            <Legend
+              verticalAlign="top"
+              height={32}
+              wrapperStyle={{ color: 'rgba(212, 226, 255, 0.85)', fontSize: '0.8rem' }}
+            />
+            <Area
+              type="monotone"
+              dataKey="baseline"
+              name="General AI Trend"
+              stroke="#8da0bf"
+              strokeWidth={2}
+              strokeDasharray="6 6"
+              fill="url(#momentum-baseline)"
+              connectNulls
+              isAnimationActive={false}
+            />
+            <Area
+              type="monotone"
+              dataKey="advancement"
+              name="Momentum"
+              stroke="#00e1ff"
+              strokeWidth={3}
+              fill="url(#momentum-curve)"
+              dot={{ stroke: '#00e1ff', strokeWidth: 1, r: 4, fill: '#00e1ff' }}
+              connectNulls
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+        {loadingOverlay && (
+          <div className="momentum-shell__overlay">
+            <div className="visualizer-spinner">
+              <span className="spinner-dot" aria-hidden="true" />
+              <span className="spinner-label">Syncing momentum signals…</span>
+            </div>
+          </div>
+        )}
+      </div>
+      <form className="momentum-form" onSubmit={handleSubmit}>
+        <label className="momentum-label" htmlFor="momentum-input">
+          Track a topic
+        </label>
+        <div className="momentum-input-row">
+          <input
+            id="momentum-input"
+            type="text"
+            value={inputValue}
+            onChange={handleInputChange}
+            placeholder="Agent operations, autonomy ops, AI in finance…"
+            autoComplete="off"
+          />
+          <button type="submit">Track</button>
+        </div>
+        <div className="momentum-hint">{hint}</div>
+        <div className="momentum-suggestions">
+          {sampleTopics.map((topic) => (
+            <button
+              key={topic}
+              type="button"
+              className="momentum-chip"
+              onClick={() => handleSuggestion(topic)}
+            >
+              {topic}
+            </button>
+          ))}
+        </div>
+        <div className="momentum-metrics">
+          <div>
+            <span>Acceleration delta</span>
+            <strong className="up">{deltaLabel}</strong>
+          </div>
+          <div>
+            <span>Tipping year</span>
+            <strong>{summary.horizon}</strong>
+          </div>
+          <div>
+            <span>Velocity</span>
+            <strong className="fast">{velocityLabel}</strong>
+          </div>
+        </div>
+        <div className="momentum-submetrics">
+          <div>
+            <span>Growth multiple</span>
+            <strong>{multipleLabel}</strong>
+          </div>
+          <p className="momentum-insight">{summary.nextMilestone}</p>
+        </div>
+      </form>
+    </>
+  );
 };
 
 const VisualizerApp = () => {
@@ -275,6 +661,18 @@ const VisualizerApp = () => {
   );
 };
 
+const mountMomentum = () => {
+  const host = document.getElementById('tech-momentum');
+  if (!host) return;
+
+  const root = createRoot(host);
+  root.render(
+    <React.StrictMode>
+      <MomentumHero />
+    </React.StrictMode>
+  );
+};
+
 const mountVisualizer = () => {
   const host = document.getElementById('ai-visualizer');
   if (!host) return;
@@ -287,8 +685,13 @@ const mountVisualizer = () => {
   );
 };
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', mountVisualizer, { once: true });
-} else {
+const bootInteractive = () => {
+  mountMomentum();
   mountVisualizer();
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootInteractive, { once: true });
+} else {
+  bootInteractive();
 }

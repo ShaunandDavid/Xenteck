@@ -22619,9 +22619,9 @@ var require_with_selector_development = __commonJS({
         return x2 === y2 && (0 !== x2 || 1 / x2 === 1 / y2) || x2 !== x2 && y2 !== y2;
       }
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-      var React41 = require_react(), shim = require_shim(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = shim.useSyncExternalStore, useRef11 = React41.useRef, useEffect20 = React41.useEffect, useMemo9 = React41.useMemo, useDebugValue2 = React41.useDebugValue;
+      var React41 = require_react(), shim = require_shim(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = shim.useSyncExternalStore, useRef12 = React41.useRef, useEffect20 = React41.useEffect, useMemo9 = React41.useMemo, useDebugValue2 = React41.useDebugValue;
       exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
-        var instRef = useRef11(null);
+        var instRef = useRef12(null);
         if (null === instRef.current) {
           var inst = { hasValue: false, value: null };
           instRef.current = inst;
@@ -23359,9 +23359,9 @@ var require_use_sync_external_store_with_selector_development = __commonJS({
         return x2 === y2 && (0 !== x2 || 1 / x2 === 1 / y2) || x2 !== x2 && y2 !== y2;
       }
       "undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-      var React41 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React41.useSyncExternalStore, useRef11 = React41.useRef, useEffect20 = React41.useEffect, useMemo9 = React41.useMemo, useDebugValue2 = React41.useDebugValue;
+      var React41 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is2, useSyncExternalStore2 = React41.useSyncExternalStore, useRef12 = React41.useRef, useEffect20 = React41.useEffect, useMemo9 = React41.useMemo, useDebugValue2 = React41.useDebugValue;
       exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
-        var instRef = useRef11(null);
+        var instRef = useRef12(null);
         if (null === instRef.current) {
           var inst = { hasValue: false, value: null };
           instRef.current = inst;
@@ -43826,6 +43826,49 @@ var getProjectedGrowthData = async (topic, providedKey) => {
   }
 };
 
+// assets/js/services/momentumService.js
+var ENDPOINT = "/api/v1/interest-trends";
+var fetchInterestTrends = async (topic) => {
+  const trimmed = (topic || "").trim();
+  if (!trimmed) {
+    return { ok: false, reason: "missing-topic" };
+  }
+  const url = `${ENDPOINT}?topic=${encodeURIComponent(trimmed)}`;
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" }
+    });
+    if (!response.ok) {
+      const message = await response.text();
+      return {
+        ok: false,
+        reason: `http-${response.status}`,
+        message: message || "Trend service returned an error."
+      };
+    }
+    const payload = await response.json();
+    if (!payload?.ok) {
+      return {
+        ok: false,
+        reason: payload?.error?.code || "trend-error",
+        message: payload?.error?.message
+      };
+    }
+    return {
+      ok: true,
+      data: Array.isArray(payload.data) ? payload.data : [],
+      topic: payload.topic
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      reason: "network-error",
+      message: error instanceof Error ? error.message : String(error)
+    };
+  }
+};
+
 // assets/js/visualizer.jsx
 var DEFAULT_TOPIC = "AI Growth";
 var sampleTopics = [
@@ -43903,6 +43946,249 @@ var synthesiseProjection = (topic, source = []) => {
     startValue,
     targetValue
   });
+};
+var generateBaselineSeries = (topic, startYear, span) => {
+  const seed = getTopicSeed(`${topic}-baseline`);
+  return Array.from({ length: span }, (_, index) => {
+    const progress = index / Math.max(span - 1, 1);
+    const baseline = 75 + progress * 320 + Math.sin(seed / 3 + index * 0.72) * 9 + Math.cos(seed / 5 + index * 0.66) * 5;
+    return {
+      year: startYear + index,
+      baseline: Math.round(Math.max(20, baseline))
+    };
+  });
+};
+var mergeSeries = (baselineSeries, momentumSeries) => {
+  const baselineMap = new Map(baselineSeries.map((point4) => [point4.year, point4]));
+  const momentumMap = new Map(momentumSeries.map((point4) => [point4.year, point4]));
+  const years = /* @__PURE__ */ new Set([...baselineMap.keys(), ...momentumMap.keys()]);
+  return Array.from(years).sort((a2, b) => a2 - b).map((year) => {
+    const baselinePoint = baselineMap.get(year);
+    const momentumPoint = momentumMap.get(year);
+    return {
+      year,
+      baseline: baselinePoint?.baseline ?? null,
+      advancement: momentumPoint?.advancement ?? null,
+      milestone: momentumPoint?.milestone
+    };
+  });
+};
+var buildMomentumFrame = (topic, sourcePoints = []) => {
+  const momentumSeries = synthesiseProjection(topic, sourcePoints);
+  const startYear = momentumSeries[0]?.year ?? (/* @__PURE__ */ new Date()).getUTCFullYear() - 4;
+  const span = Math.max(momentumSeries.length, 15);
+  const baselineSeries = generateBaselineSeries(topic, startYear, span);
+  const combined = mergeSeries(baselineSeries, momentumSeries);
+  const firstPoint = combined[0] ?? {
+    year: startYear,
+    advancement: 120,
+    baseline: 90
+  };
+  const lastPoint = combined[combined.length - 1] ?? firstPoint;
+  const backIndex = Math.max(combined.length - 4, 0);
+  const trailingPoint = combined[backIndex] ?? firstPoint;
+  const delta = Math.max(
+    0,
+    Math.round((lastPoint.advancement ?? 0) - (lastPoint.baseline ?? 0))
+  );
+  const velocity = Math.round(
+    (lastPoint.advancement ?? 0) - (trailingPoint.advancement ?? firstPoint.advancement ?? 0)
+  );
+  const growthMultiple = Number(
+    ((lastPoint.advancement ?? 1) / Math.max(firstPoint.advancement ?? 1, 1)).toFixed(1)
+  );
+  const nextMilestone = momentumSeries.find((point4) => point4.milestone)?.milestone || `${topic} breaks through incumbents.`;
+  return {
+    dataset: combined,
+    summary: {
+      delta,
+      velocity,
+      growthMultiple,
+      horizon: lastPoint.year ?? startYear + span - 1,
+      nextMilestone
+    }
+  };
+};
+var numberFormatter = new Intl.NumberFormat("en-US", {
+  maximumFractionDigits: 0
+});
+var velocityFormatter = new Intl.NumberFormat("en-US", {
+  maximumFractionDigits: 0,
+  signDisplay: "always"
+});
+var multipleFormatter = new Intl.NumberFormat("en-US", {
+  maximumFractionDigits: 1
+});
+var MomentumTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) {
+    return null;
+  }
+  const advancement = payload.find((entry) => entry.dataKey === "advancement");
+  const baseline = payload.find((entry) => entry.dataKey === "baseline");
+  const milestone = advancement?.payload?.milestone;
+  return /* @__PURE__ */ import_react49.default.createElement("div", { className: "ai-panel ai-panel--tooltip" }, /* @__PURE__ */ import_react49.default.createElement("p", { className: "label sora", style: { fontWeight: 600, margin: 0 } }, "Year ", label), advancement && /* @__PURE__ */ import_react49.default.createElement("p", { style: { margin: ".35rem 0", color: "rgba(0, 225, 255, .9)" } }, "Momentum: ", numberFormatter.format(advancement.value)), baseline && /* @__PURE__ */ import_react49.default.createElement("p", { style: { margin: 0, color: "rgba(201, 210, 224, .8)" } }, "Baseline: ", numberFormatter.format(baseline.value)), milestone && /* @__PURE__ */ import_react49.default.createElement("p", { style: { marginTop: ".6rem", color: "rgba(255, 202, 87, .9)", fontSize: ".82rem" } }, milestone));
+};
+var MomentumHero = () => {
+  const initialTopic = sampleTopics[0];
+  const [inputValue, setInputValue] = (0, import_react49.useState)(initialTopic);
+  const [activeTopic, setActiveTopic] = (0, import_react49.useState)(initialTopic);
+  const [frame, setFrame] = (0, import_react49.useState)(() => buildMomentumFrame(initialTopic));
+  const [statusLabel, setStatusLabel] = (0, import_react49.useState)("LLM Ensemble");
+  const [isLoading, setIsLoading] = (0, import_react49.useState)(false);
+  const [isDebouncing, setIsDebouncing] = (0, import_react49.useState)(false);
+  const [lastUpdated, setLastUpdated] = (0, import_react49.useState)(null);
+  const [errorMessage, setErrorMessage] = (0, import_react49.useState)("");
+  const debounceRef = (0, import_react49.useRef)(null);
+  const loadMomentum = (0, import_react49.useCallback)(
+    async (topic) => {
+      if (!topic) return;
+      setIsLoading(true);
+      setErrorMessage("");
+      let sourcePoints = [];
+      let liveLabel = "LLM Ensemble";
+      const response = await fetchInterestTrends(topic);
+      if (response.ok && response.data.length) {
+        sourcePoints = response.data;
+        liveLabel = "Growth Feed + Ensemble";
+      } else if (!response.ok) {
+        setErrorMessage(
+          response.message || "Signal feed unavailable. Using ensemble projection."
+        );
+      }
+      const nextFrame = buildMomentumFrame(topic, sourcePoints);
+      setFrame(nextFrame);
+      setStatusLabel(liveLabel);
+      setLastUpdated(/* @__PURE__ */ new Date());
+      setIsLoading(false);
+    },
+    []
+  );
+  (0, import_react49.useEffect)(() => {
+    loadMomentum(activeTopic);
+  }, [activeTopic, loadMomentum]);
+  (0, import_react49.useEffect)(
+    () => () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    },
+    []
+  );
+  const handleInputChange = (event) => {
+    const value = event.target.value;
+    setInputValue(value);
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    if (!value.trim()) {
+      setIsDebouncing(false);
+      return;
+    }
+    setIsDebouncing(true);
+    debounceRef.current = window.setTimeout(() => {
+      setActiveTopic(value.trim());
+      setIsDebouncing(false);
+    }, 480);
+  };
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      setIsDebouncing(false);
+    }
+    const trimmed = inputValue.trim();
+    if (trimmed && trimmed !== activeTopic) {
+      setActiveTopic(trimmed);
+    }
+  };
+  const handleSuggestion = (topic) => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    setInputValue(topic);
+    setIsDebouncing(false);
+    if (topic !== activeTopic) {
+      setActiveTopic(topic);
+    }
+  };
+  const hint = errorMessage ? errorMessage : isLoading ? "Crunching live telemetry\u2026" : isDebouncing ? "Syncing feed\u2026" : "Type a capability or tap a chip to bend the curve.";
+  const summary = frame.summary;
+  const deltaLabel = `${summary.delta > 0 ? "+" : ""}${numberFormatter.format(summary.delta)} pts`;
+  const velocityLabel = `${velocityFormatter.format(summary.velocity)} / yr`;
+  const multipleLabel = `${multipleFormatter.format(summary.growthMultiple)}\xD7`;
+  const sourceChipClass = statusLabel === "Growth Feed + Ensemble" ? "status-chip status-chip--live" : "status-chip";
+  const chartData = frame.dataset;
+  const loadingOverlay = isLoading || isDebouncing;
+  return /* @__PURE__ */ import_react49.default.createElement(import_react49.default.Fragment, null, /* @__PURE__ */ import_react49.default.createElement("div", { className: "momentum-panel__top" }, /* @__PURE__ */ import_react49.default.createElement("div", null, /* @__PURE__ */ import_react49.default.createElement("span", { className: "momentum-pill" }, "Tech Momentum"), /* @__PURE__ */ import_react49.default.createElement("h2", null, activeTopic)), /* @__PURE__ */ import_react49.default.createElement("div", { className: "momentum-status" }, /* @__PURE__ */ import_react49.default.createElement("span", { className: sourceChipClass }, statusLabel), /* @__PURE__ */ import_react49.default.createElement("span", { className: "status-chip" }, "GPT-4o \xB7 Claude \xB7 Gemini \xB7 Llama"), /* @__PURE__ */ import_react49.default.createElement("small", null, lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : "Awaiting feed\u2026"))), /* @__PURE__ */ import_react49.default.createElement("div", { className: "momentum-shell" }, /* @__PURE__ */ import_react49.default.createElement(ResponsiveContainer, { width: "100%", height: "100%" }, /* @__PURE__ */ import_react49.default.createElement(AreaChart, { data: chartData, margin: { top: 12, right: 16, left: 0, bottom: 12 } }, /* @__PURE__ */ import_react49.default.createElement("defs", null, /* @__PURE__ */ import_react49.default.createElement("linearGradient", { id: "momentum-baseline", x1: "0", y1: "0", x2: "0", y2: "1" }, /* @__PURE__ */ import_react49.default.createElement("stop", { offset: "0%", stopColor: "#8DA0BF", stopOpacity: 0.35 }), /* @__PURE__ */ import_react49.default.createElement("stop", { offset: "100%", stopColor: "rgba(141, 160, 191, 0)", stopOpacity: 0 })), /* @__PURE__ */ import_react49.default.createElement("linearGradient", { id: "momentum-curve", x1: "0", y1: "0", x2: "0", y2: "1" }, /* @__PURE__ */ import_react49.default.createElement("stop", { offset: "0%", stopColor: "#00e1ff", stopOpacity: 0.55 }), /* @__PURE__ */ import_react49.default.createElement("stop", { offset: "100%", stopColor: "rgba(0, 225, 255, 0)", stopOpacity: 0 }))), /* @__PURE__ */ import_react49.default.createElement(CartesianGrid, { stroke: "rgba(255,255,255,0.08)", horizontal: true, vertical: false }), /* @__PURE__ */ import_react49.default.createElement(
+    XAxis,
+    {
+      dataKey: "year",
+      stroke: "rgba(255, 255, 255, 0.42)",
+      tick: { fill: "rgba(255, 255, 255, 0.55)", fontSize: 12 },
+      axisLine: false,
+      tickLine: false
+    }
+  ), /* @__PURE__ */ import_react49.default.createElement(
+    YAxis,
+    {
+      stroke: "rgba(255, 255, 255, 0.42)",
+      tick: { fill: "rgba(255, 255, 255, 0.55)", fontSize: 12 },
+      domain: [0, 1350],
+      axisLine: false,
+      tickLine: false
+    }
+  ), /* @__PURE__ */ import_react49.default.createElement(Tooltip, { content: /* @__PURE__ */ import_react49.default.createElement(MomentumTooltip, null) }), /* @__PURE__ */ import_react49.default.createElement(
+    Legend,
+    {
+      verticalAlign: "top",
+      height: 32,
+      wrapperStyle: { color: "rgba(212, 226, 255, 0.85)", fontSize: "0.8rem" }
+    }
+  ), /* @__PURE__ */ import_react49.default.createElement(
+    Area,
+    {
+      type: "monotone",
+      dataKey: "baseline",
+      name: "General AI Trend",
+      stroke: "#8da0bf",
+      strokeWidth: 2,
+      strokeDasharray: "6 6",
+      fill: "url(#momentum-baseline)",
+      connectNulls: true,
+      isAnimationActive: false
+    }
+  ), /* @__PURE__ */ import_react49.default.createElement(
+    Area,
+    {
+      type: "monotone",
+      dataKey: "advancement",
+      name: "Momentum",
+      stroke: "#00e1ff",
+      strokeWidth: 3,
+      fill: "url(#momentum-curve)",
+      dot: { stroke: "#00e1ff", strokeWidth: 1, r: 4, fill: "#00e1ff" },
+      connectNulls: true
+    }
+  ))), loadingOverlay && /* @__PURE__ */ import_react49.default.createElement("div", { className: "momentum-shell__overlay" }, /* @__PURE__ */ import_react49.default.createElement("div", { className: "visualizer-spinner" }, /* @__PURE__ */ import_react49.default.createElement("span", { className: "spinner-dot", "aria-hidden": "true" }), /* @__PURE__ */ import_react49.default.createElement("span", { className: "spinner-label" }, "Syncing momentum signals\u2026")))), /* @__PURE__ */ import_react49.default.createElement("form", { className: "momentum-form", onSubmit: handleSubmit }, /* @__PURE__ */ import_react49.default.createElement("label", { className: "momentum-label", htmlFor: "momentum-input" }, "Track a topic"), /* @__PURE__ */ import_react49.default.createElement("div", { className: "momentum-input-row" }, /* @__PURE__ */ import_react49.default.createElement(
+    "input",
+    {
+      id: "momentum-input",
+      type: "text",
+      value: inputValue,
+      onChange: handleInputChange,
+      placeholder: "Agent operations, autonomy ops, AI in finance\u2026",
+      autoComplete: "off"
+    }
+  ), /* @__PURE__ */ import_react49.default.createElement("button", { type: "submit" }, "Track")), /* @__PURE__ */ import_react49.default.createElement("div", { className: "momentum-hint" }, hint), /* @__PURE__ */ import_react49.default.createElement("div", { className: "momentum-suggestions" }, sampleTopics.map((topic) => /* @__PURE__ */ import_react49.default.createElement(
+    "button",
+    {
+      key: topic,
+      type: "button",
+      className: "momentum-chip",
+      onClick: () => handleSuggestion(topic)
+    },
+    topic
+  ))), /* @__PURE__ */ import_react49.default.createElement("div", { className: "momentum-metrics" }, /* @__PURE__ */ import_react49.default.createElement("div", null, /* @__PURE__ */ import_react49.default.createElement("span", null, "Acceleration delta"), /* @__PURE__ */ import_react49.default.createElement("strong", { className: "up" }, deltaLabel)), /* @__PURE__ */ import_react49.default.createElement("div", null, /* @__PURE__ */ import_react49.default.createElement("span", null, "Tipping year"), /* @__PURE__ */ import_react49.default.createElement("strong", null, summary.horizon)), /* @__PURE__ */ import_react49.default.createElement("div", null, /* @__PURE__ */ import_react49.default.createElement("span", null, "Velocity"), /* @__PURE__ */ import_react49.default.createElement("strong", { className: "fast" }, velocityLabel))), /* @__PURE__ */ import_react49.default.createElement("div", { className: "momentum-submetrics" }, /* @__PURE__ */ import_react49.default.createElement("div", null, /* @__PURE__ */ import_react49.default.createElement("span", null, "Growth multiple"), /* @__PURE__ */ import_react49.default.createElement("strong", null, multipleLabel)), /* @__PURE__ */ import_react49.default.createElement("p", { className: "momentum-insight" }, summary.nextMilestone))));
 };
 var VisualizerApp = () => {
   const initialTopic = getInitialTopic();
@@ -44017,6 +44303,14 @@ var VisualizerApp = () => {
     }
   )));
 };
+var mountMomentum = () => {
+  const host = document.getElementById("tech-momentum");
+  if (!host) return;
+  const root = (0, import_client.createRoot)(host);
+  root.render(
+    /* @__PURE__ */ import_react49.default.createElement(import_react49.default.StrictMode, null, /* @__PURE__ */ import_react49.default.createElement(MomentumHero, null))
+  );
+};
 var mountVisualizer = () => {
   const host = document.getElementById("ai-visualizer");
   if (!host) return;
@@ -44025,10 +44319,14 @@ var mountVisualizer = () => {
     /* @__PURE__ */ import_react49.default.createElement(import_react49.default.StrictMode, null, /* @__PURE__ */ import_react49.default.createElement(VisualizerApp, null))
   );
 };
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", mountVisualizer, { once: true });
-} else {
+var bootInteractive = () => {
+  mountMomentum();
   mountVisualizer();
+};
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", bootInteractive, { once: true });
+} else {
+  bootInteractive();
 }
 /*! Bundled license information:
 
