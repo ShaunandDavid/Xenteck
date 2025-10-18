@@ -43869,6 +43869,40 @@ var fetchInterestTrends = async (topic) => {
   }
 };
 
+// assets/js/services/buildQueueService.js
+var ENDPOINT2 = "/api/v1/build-queue";
+var fetchBuildQueue = async () => {
+  try {
+    const response = await fetch(ENDPOINT2, {
+      method: "GET",
+      headers: { Accept: "application/json" }
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      return {
+        ok: false,
+        reason: `http-${response.status}`,
+        message: text || "Unable to load build queue."
+      };
+    }
+    const payload = await response.json();
+    if (!payload?.ok) {
+      return {
+        ok: false,
+        reason: payload?.error?.code || "queue-error",
+        message: payload?.error?.message
+      };
+    }
+    return { ok: true, data: payload.data, refreshedAt: new Date(payload.refreshedAt) };
+  } catch (error) {
+    return {
+      ok: false,
+      reason: "network-error",
+      message: error instanceof Error ? error.message : String(error)
+    };
+  }
+};
+
 // assets/js/visualizer.jsx
 var DEFAULT_TOPIC = "AI Growth";
 var sampleTopics = [
@@ -44190,6 +44224,216 @@ var MomentumHero = () => {
     topic
   ))), /* @__PURE__ */ import_react49.default.createElement("div", { className: "momentum-metrics" }, /* @__PURE__ */ import_react49.default.createElement("div", null, /* @__PURE__ */ import_react49.default.createElement("span", null, "Acceleration delta"), /* @__PURE__ */ import_react49.default.createElement("strong", { className: "up" }, deltaLabel)), /* @__PURE__ */ import_react49.default.createElement("div", null, /* @__PURE__ */ import_react49.default.createElement("span", null, "Tipping year"), /* @__PURE__ */ import_react49.default.createElement("strong", null, summary.horizon)), /* @__PURE__ */ import_react49.default.createElement("div", null, /* @__PURE__ */ import_react49.default.createElement("span", null, "Velocity"), /* @__PURE__ */ import_react49.default.createElement("strong", { className: "fast" }, velocityLabel))), /* @__PURE__ */ import_react49.default.createElement("div", { className: "momentum-submetrics" }, /* @__PURE__ */ import_react49.default.createElement("div", null, /* @__PURE__ */ import_react49.default.createElement("span", null, "Growth multiple"), /* @__PURE__ */ import_react49.default.createElement("strong", null, multipleLabel)), /* @__PURE__ */ import_react49.default.createElement("p", { className: "momentum-insight" }, summary.nextMilestone))));
 };
+var computeRoi = (values) => {
+  const teamSize = Math.max(1, Number.parseFloat(values.teamSize) || 0);
+  const workflowsPerWeek = Math.max(0, Number.parseFloat(values.workflowsPerWeek) || 0);
+  const hoursPerWorkflow = Math.max(0, Number.parseFloat(values.hoursPerWorkflow) || 0);
+  const hourlyRate = Math.max(0, Number.parseFloat(values.hourlyRate) || 0);
+  const automationCost = Math.max(0, Number.parseFloat(values.automationCost) || 0);
+  const workflowsPerMonth = workflowsPerWeek * 4;
+  const hoursSavedMonthly = teamSize * workflowsPerMonth * hoursPerWorkflow;
+  const valueSavedMonthly = hoursSavedMonthly * hourlyRate;
+  const valueSavedAnnual = valueSavedMonthly * 12;
+  const paybackMonths = valueSavedMonthly > 0 ? automationCost / valueSavedMonthly : Infinity;
+  const roiPercent = automationCost > 0 ? (valueSavedAnnual - automationCost) / automationCost * 100 : Infinity;
+  return {
+    hoursSavedMonthly,
+    valueSavedMonthly,
+    valueSavedAnnual,
+    paybackMonths,
+    roiPercent,
+    automationCost
+  };
+};
+var RoiCalculator = () => {
+  const [inputs, setInputs] = (0, import_react49.useState)({
+    teamSize: "6",
+    workflowsPerWeek: "8",
+    hoursPerWorkflow: "1.5",
+    hourlyRate: "85",
+    automationCost: "9500"
+  });
+  const [results, setResults] = (0, import_react49.useState)(() => computeRoi(inputs));
+  const [copyState, setCopyState] = (0, import_react49.useState)("");
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setInputs((prev) => ({ ...prev, [name]: value }));
+  };
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const nextResults = computeRoi(inputs);
+    setResults(nextResults);
+  };
+  const handleCopy = async () => {
+    const summary = [
+      `Team size: ${inputs.teamSize}`,
+      `Hours saved / month: ${numberFormatter.format(results.hoursSavedMonthly)}`,
+      `Value created / month: $${numberFormatter.format(results.valueSavedMonthly)}`,
+      `Payback period: ${Number.isFinite(results.paybackMonths) ? `${results.paybackMonths.toFixed(1)} months` : "N/A"}`,
+      `12-month ROI: ${Number.isFinite(results.roiPercent) ? `${results.roiPercent.toFixed(1)}%` : "N/A"}`
+    ].join("\n");
+    try {
+      await navigator.clipboard.writeText(summary);
+      setCopyState("Copied summary");
+    } catch {
+      setCopyState("Copy failed");
+    }
+    window.setTimeout(() => setCopyState(""), 1800);
+  };
+  return /* @__PURE__ */ import_react49.default.createElement("form", { className: "roi-form", onSubmit: handleSubmit }, /* @__PURE__ */ import_react49.default.createElement("div", { className: "roi-grid" }, /* @__PURE__ */ import_react49.default.createElement("div", { className: "roi-field" }, /* @__PURE__ */ import_react49.default.createElement("label", { htmlFor: "teamSize" }, "Team size"), /* @__PURE__ */ import_react49.default.createElement(
+    "input",
+    {
+      id: "teamSize",
+      name: "teamSize",
+      type: "number",
+      min: "1",
+      step: "1",
+      value: inputs.teamSize,
+      onChange: handleChange,
+      required: true
+    }
+  )), /* @__PURE__ */ import_react49.default.createElement("div", { className: "roi-field" }, /* @__PURE__ */ import_react49.default.createElement("label", { htmlFor: "workflowsPerWeek" }, "Workflows / week"), /* @__PURE__ */ import_react49.default.createElement(
+    "input",
+    {
+      id: "workflowsPerWeek",
+      name: "workflowsPerWeek",
+      type: "number",
+      min: "0",
+      step: "1",
+      value: inputs.workflowsPerWeek,
+      onChange: handleChange,
+      required: true
+    }
+  )), /* @__PURE__ */ import_react49.default.createElement("div", { className: "roi-field" }, /* @__PURE__ */ import_react49.default.createElement("label", { htmlFor: "hoursPerWorkflow" }, "Hours saved / workflow"), /* @__PURE__ */ import_react49.default.createElement(
+    "input",
+    {
+      id: "hoursPerWorkflow",
+      name: "hoursPerWorkflow",
+      type: "number",
+      min: "0",
+      step: "0.1",
+      value: inputs.hoursPerWorkflow,
+      onChange: handleChange,
+      required: true
+    }
+  )), /* @__PURE__ */ import_react49.default.createElement("div", { className: "roi-field" }, /* @__PURE__ */ import_react49.default.createElement("label", { htmlFor: "hourlyRate" }, "Blended hourly rate ($)"), /* @__PURE__ */ import_react49.default.createElement(
+    "input",
+    {
+      id: "hourlyRate",
+      name: "hourlyRate",
+      type: "number",
+      min: "0",
+      step: "1",
+      value: inputs.hourlyRate,
+      onChange: handleChange,
+      required: true
+    }
+  )), /* @__PURE__ */ import_react49.default.createElement("div", { className: "roi-field" }, /* @__PURE__ */ import_react49.default.createElement("label", { htmlFor: "automationCost" }, "Automation investment ($)"), /* @__PURE__ */ import_react49.default.createElement(
+    "input",
+    {
+      id: "automationCost",
+      name: "automationCost",
+      type: "number",
+      min: "0",
+      step: "100",
+      value: inputs.automationCost,
+      onChange: handleChange,
+      required: true
+    }
+  ))), /* @__PURE__ */ import_react49.default.createElement("div", { className: "roi-actions" }, /* @__PURE__ */ import_react49.default.createElement("button", { type: "submit", className: "btn-primary-lite" }, "Recalculate ROI"), /* @__PURE__ */ import_react49.default.createElement("button", { type: "button", className: "btn-ghost-lite", onClick: handleCopy }, "Copy summary"), copyState && /* @__PURE__ */ import_react49.default.createElement("span", null, copyState)), /* @__PURE__ */ import_react49.default.createElement("div", { className: "roi-results" }, /* @__PURE__ */ import_react49.default.createElement("div", null, /* @__PURE__ */ import_react49.default.createElement("strong", null, "$", numberFormatter.format(results.valueSavedMonthly)), /* @__PURE__ */ import_react49.default.createElement("span", null, "Monthly value created")), /* @__PURE__ */ import_react49.default.createElement("div", null, /* @__PURE__ */ import_react49.default.createElement("strong", null, Number.isFinite(results.paybackMonths) ? `${results.paybackMonths.toFixed(1)} months` : "N/A"), /* @__PURE__ */ import_react49.default.createElement("span", null, "Automation payback")), /* @__PURE__ */ import_react49.default.createElement("div", null, /* @__PURE__ */ import_react49.default.createElement("strong", null, Number.isFinite(results.roiPercent) ? `${results.roiPercent.toFixed(1)}%` : "N/A"), /* @__PURE__ */ import_react49.default.createElement("span", null, "12-month ROI"))));
+};
+var BuildQueueTicker = () => {
+  const [snapshot, setSnapshot] = (0, import_react49.useState)(null);
+  const [errorMessage, setErrorMessage] = (0, import_react49.useState)("");
+  const [isLoading, setIsLoading] = (0, import_react49.useState)(false);
+  const loadQueue = (0, import_react49.useCallback)(async () => {
+    setIsLoading(true);
+    const response = await fetchBuildQueue();
+    if (response.ok) {
+      setSnapshot({
+        ...response.data,
+        refreshedAt: response.refreshedAt || /* @__PURE__ */ new Date()
+      });
+      setErrorMessage("");
+    } else {
+      setErrorMessage(response.message || "Unable to fetch build queue.");
+    }
+    setIsLoading(false);
+  }, []);
+  (0, import_react49.useEffect)(() => {
+    loadQueue();
+  }, [loadQueue]);
+  const stats = snapshot || {
+    auditsRunning: 0,
+    deploymentsToday: 0,
+    avgTimeToValue: 0,
+    activeAgents: 0,
+    backlog: 0,
+    refreshedAt: /* @__PURE__ */ new Date()
+  };
+  return /* @__PURE__ */ import_react49.default.createElement("div", { className: "build-queue" }, /* @__PURE__ */ import_react49.default.createElement("div", { className: "queue-stats" }, /* @__PURE__ */ import_react49.default.createElement("div", { className: "queue-stat" }, /* @__PURE__ */ import_react49.default.createElement("span", null, "Audits running"), /* @__PURE__ */ import_react49.default.createElement("strong", null, stats.auditsRunning)), /* @__PURE__ */ import_react49.default.createElement("div", { className: "queue-stat" }, /* @__PURE__ */ import_react49.default.createElement("span", null, "Deployments today"), /* @__PURE__ */ import_react49.default.createElement("strong", null, stats.deploymentsToday)), /* @__PURE__ */ import_react49.default.createElement("div", { className: "queue-stat" }, /* @__PURE__ */ import_react49.default.createElement("span", null, "Avg time-to-value"), /* @__PURE__ */ import_react49.default.createElement("strong", null, stats.avgTimeToValue, " days")), /* @__PURE__ */ import_react49.default.createElement("div", { className: "queue-stat" }, /* @__PURE__ */ import_react49.default.createElement("span", null, "Active agents"), /* @__PURE__ */ import_react49.default.createElement("strong", null, stats.activeAgents)), /* @__PURE__ */ import_react49.default.createElement("div", { className: "queue-stat" }, /* @__PURE__ */ import_react49.default.createElement("span", null, "Build backlog"), /* @__PURE__ */ import_react49.default.createElement("strong", null, stats.backlog))), /* @__PURE__ */ import_react49.default.createElement("div", { className: "queue-refresh" }, /* @__PURE__ */ import_react49.default.createElement("button", { type: "button", className: "btn-ghost-lite", onClick: loadQueue, disabled: isLoading }, isLoading ? "Refreshing\u2026" : "Refresh feed"), /* @__PURE__ */ import_react49.default.createElement("span", null, "Updated", " ", stats.refreshedAt ? new Date(stats.refreshedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "--")), errorMessage && /* @__PURE__ */ import_react49.default.createElement("p", { className: "momentum-error" }, errorMessage));
+};
+var AGENT_TEMPLATES = {
+  sop: ({ topic }) => [
+    `Kick off with a 12-minute discovery on current ${topic} path, mapping trigger \u2192 owner \u2192 artefacts.`,
+    `Draft a crisp SOP with swimlanes, approval thresholds, and L0 fallback within 45 minutes.`,
+    `Automate version control: ship SOP to Notion + Slack, capturing comments and change telemetry automatically.`
+  ],
+  process: ({ topic }) => [
+    `Ingest the raw transcript and surface the three highest-friction steps in ${topic}.`,
+    `Model failure modes with guardrails, then propose agent/human breakpoints with a 30-60-90 plan.`,
+    `Publish a live dashboard showing cycle time, delta vs. baseline, and rollback triggers.`
+  ],
+  automation: ({ topic }) => [
+    `Capture the upstream signals feeding ${topic} and validate data hygiene with the growth telemetry API.`,
+    `Compose an agentic runbook: perception, reasoning, action, and audit logging in under 60 seconds.`,
+    `Spin up an A/B harness so the agent can ship safe changes with automated post-run reviews.`
+  ]
+};
+var AgentDemoCard = () => {
+  const [scenario, setScenario] = (0, import_react49.useState)("sop");
+  const [description, setDescription] = (0, import_react49.useState)("");
+  const [output, setOutput] = (0, import_react49.useState)([]);
+  const [copyState, setCopyState] = (0, import_react49.useState)("");
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const trimmed = description.trim() || "the process";
+    const builder = AGENT_TEMPLATES[scenario];
+    const plan = builder({ topic: trimmed });
+    setOutput(plan);
+    setCopyState("");
+  };
+  const handleCopy = async () => {
+    if (!output.length) return;
+    try {
+      await navigator.clipboard.writeText(output.join("\n"));
+      setCopyState("Plan copied");
+    } catch {
+      setCopyState("Copy failed");
+    }
+    window.setTimeout(() => setCopyState(""), 1800);
+  };
+  return /* @__PURE__ */ import_react49.default.createElement("div", { className: "agent-demo" }, /* @__PURE__ */ import_react49.default.createElement("form", { onSubmit: handleSubmit }, /* @__PURE__ */ import_react49.default.createElement("label", { className: "momentum-label", htmlFor: "agent-scenario" }, "Agent focus"), /* @__PURE__ */ import_react49.default.createElement(
+    "select",
+    {
+      id: "agent-scenario",
+      value: scenario,
+      onChange: (event) => setScenario(event.target.value)
+    },
+    /* @__PURE__ */ import_react49.default.createElement("option", { value: "sop" }, "Draft a SOP"),
+    /* @__PURE__ */ import_react49.default.createElement("option", { value: "process" }, "Analyze a process"),
+    /* @__PURE__ */ import_react49.default.createElement("option", { value: "automation" }, "Map an automation")
+  ), /* @__PURE__ */ import_react49.default.createElement("label", { className: "momentum-label", htmlFor: "agent-desc" }, "Describe the workflow"), /* @__PURE__ */ import_react49.default.createElement(
+    "textarea",
+    {
+      id: "agent-desc",
+      value: description,
+      onChange: (event) => setDescription(event.target.value),
+      placeholder: "e.g. Level 7 onboarding intake, enterprise support handoffs\u2026"
+    }
+  ), /* @__PURE__ */ import_react49.default.createElement("button", { type: "submit" }, "Generate plan")), output.length > 0 && /* @__PURE__ */ import_react49.default.createElement("div", { className: "agent-output" }, output.map((line, index) => /* @__PURE__ */ import_react49.default.createElement("div", { key: index }, /* @__PURE__ */ import_react49.default.createElement("code", null, "Step ", index + 1), " ", line)), /* @__PURE__ */ import_react49.default.createElement("button", { type: "button", className: "btn-ghost-lite", onClick: handleCopy }, copyState || "Copy plan")));
+};
+var HeroWorkbench = () => /* @__PURE__ */ import_react49.default.createElement("div", { className: "hero-widgets" }, /* @__PURE__ */ import_react49.default.createElement("div", { className: "hero-widget" }, /* @__PURE__ */ import_react49.default.createElement("header", null, /* @__PURE__ */ import_react49.default.createElement("h3", null, "ROI Console"), /* @__PURE__ */ import_react49.default.createElement("span", null, "Model the payback")), /* @__PURE__ */ import_react49.default.createElement(RoiCalculator, null)), /* @__PURE__ */ import_react49.default.createElement("div", { className: "hero-widget" }, /* @__PURE__ */ import_react49.default.createElement("header", null, /* @__PURE__ */ import_react49.default.createElement("h3", null, "Build Queue"), /* @__PURE__ */ import_react49.default.createElement("span", null, "Live delivery rhythm")), /* @__PURE__ */ import_react49.default.createElement(BuildQueueTicker, null)), /* @__PURE__ */ import_react49.default.createElement("div", { className: "hero-widget" }, /* @__PURE__ */ import_react49.default.createElement("header", null, /* @__PURE__ */ import_react49.default.createElement("h3", null, "Agent Blueprint"), /* @__PURE__ */ import_react49.default.createElement("span", null, "Launch in 60 seconds")), /* @__PURE__ */ import_react49.default.createElement(AgentDemoCard, null)));
 var VisualizerApp = () => {
   const initialTopic = getInitialTopic();
   const [topic, setTopic] = (0, import_react49.useState)(initialTopic);
@@ -44311,6 +44555,14 @@ var mountMomentum = () => {
     /* @__PURE__ */ import_react49.default.createElement(import_react49.default.StrictMode, null, /* @__PURE__ */ import_react49.default.createElement(MomentumHero, null))
   );
 };
+var mountHeroWorkbench = () => {
+  const host = document.getElementById("hero-workbench");
+  if (!host) return;
+  const root = (0, import_client.createRoot)(host);
+  root.render(
+    /* @__PURE__ */ import_react49.default.createElement(import_react49.default.StrictMode, null, /* @__PURE__ */ import_react49.default.createElement(HeroWorkbench, null))
+  );
+};
 var mountVisualizer = () => {
   const host = document.getElementById("ai-visualizer");
   if (!host) return;
@@ -44321,6 +44573,7 @@ var mountVisualizer = () => {
 };
 var bootInteractive = () => {
   mountMomentum();
+  mountHeroWorkbench();
   mountVisualizer();
 };
 if (document.readyState === "loading") {

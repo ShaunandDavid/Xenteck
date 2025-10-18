@@ -12,6 +12,7 @@ import ScoreExplanation from './components/ScoreExplanation.jsx';
 import { fetchGrowthApi, getGrowthApiUrl } from './services/growthService.js';
 import { getProjectedGrowthData } from './services/geminiService.js';
 import { fetchInterestTrends } from './services/momentumService.js';
+import { fetchBuildQueue } from './services/buildQueueService.js';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -487,6 +488,370 @@ const MomentumHero = () => {
   );
 };
 
+const computeRoi = (values) => {
+  const teamSize = Math.max(1, Number.parseFloat(values.teamSize) || 0);
+  const workflowsPerWeek = Math.max(0, Number.parseFloat(values.workflowsPerWeek) || 0);
+  const hoursPerWorkflow = Math.max(0, Number.parseFloat(values.hoursPerWorkflow) || 0);
+  const hourlyRate = Math.max(0, Number.parseFloat(values.hourlyRate) || 0);
+  const automationCost = Math.max(0, Number.parseFloat(values.automationCost) || 0);
+
+  const workflowsPerMonth = workflowsPerWeek * 4;
+  const hoursSavedMonthly = teamSize * workflowsPerMonth * hoursPerWorkflow;
+  const valueSavedMonthly = hoursSavedMonthly * hourlyRate;
+  const valueSavedAnnual = valueSavedMonthly * 12;
+  const paybackMonths = valueSavedMonthly > 0 ? automationCost / valueSavedMonthly : Infinity;
+  const roiPercent =
+    automationCost > 0
+      ? ((valueSavedAnnual - automationCost) / automationCost) * 100
+      : Infinity;
+
+  return {
+    hoursSavedMonthly,
+    valueSavedMonthly,
+    valueSavedAnnual,
+    paybackMonths,
+    roiPercent,
+    automationCost
+  };
+};
+
+const RoiCalculator = () => {
+  const [inputs, setInputs] = useState({
+    teamSize: '6',
+    workflowsPerWeek: '8',
+    hoursPerWorkflow: '1.5',
+    hourlyRate: '85',
+    automationCost: '9500'
+  });
+  const [results, setResults] = useState(() => computeRoi(inputs));
+  const [copyState, setCopyState] = useState('');
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setInputs((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const nextResults = computeRoi(inputs);
+    setResults(nextResults);
+  };
+
+  const handleCopy = async () => {
+    const summary = [
+      `Team size: ${inputs.teamSize}`,
+      `Hours saved / month: ${numberFormatter.format(results.hoursSavedMonthly)}`,
+      `Value created / month: $${numberFormatter.format(results.valueSavedMonthly)}`,
+      `Payback period: ${
+        Number.isFinite(results.paybackMonths)
+          ? `${results.paybackMonths.toFixed(1)} months`
+          : 'N/A'
+      }`,
+      `12-month ROI: ${
+        Number.isFinite(results.roiPercent)
+          ? `${results.roiPercent.toFixed(1)}%`
+          : 'N/A'
+      }`
+    ].join('\n');
+
+    try {
+      await navigator.clipboard.writeText(summary);
+      setCopyState('Copied summary');
+    } catch {
+      setCopyState('Copy failed');
+    }
+    window.setTimeout(() => setCopyState(''), 1800);
+  };
+
+  return (
+    <form className="roi-form" onSubmit={handleSubmit}>
+      <div className="roi-grid">
+        <div className="roi-field">
+          <label htmlFor="teamSize">Team size</label>
+          <input
+            id="teamSize"
+            name="teamSize"
+            type="number"
+            min="1"
+            step="1"
+            value={inputs.teamSize}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="roi-field">
+          <label htmlFor="workflowsPerWeek">Workflows / week</label>
+          <input
+            id="workflowsPerWeek"
+            name="workflowsPerWeek"
+            type="number"
+            min="0"
+            step="1"
+            value={inputs.workflowsPerWeek}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="roi-field">
+          <label htmlFor="hoursPerWorkflow">Hours saved / workflow</label>
+          <input
+            id="hoursPerWorkflow"
+            name="hoursPerWorkflow"
+            type="number"
+            min="0"
+            step="0.1"
+            value={inputs.hoursPerWorkflow}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="roi-field">
+          <label htmlFor="hourlyRate">Blended hourly rate ($)</label>
+          <input
+            id="hourlyRate"
+            name="hourlyRate"
+            type="number"
+            min="0"
+            step="1"
+            value={inputs.hourlyRate}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="roi-field">
+          <label htmlFor="automationCost">Automation investment ($)</label>
+          <input
+            id="automationCost"
+            name="automationCost"
+            type="number"
+            min="0"
+            step="100"
+            value={inputs.automationCost}
+            onChange={handleChange}
+            required
+          />
+        </div>
+      </div>
+      <div className="roi-actions">
+        <button type="submit" className="btn-primary-lite">
+          Recalculate ROI
+        </button>
+        <button type="button" className="btn-ghost-lite" onClick={handleCopy}>
+          Copy summary
+        </button>
+        {copyState && <span>{copyState}</span>}
+      </div>
+      <div className="roi-results">
+        <div>
+          <strong>${numberFormatter.format(results.valueSavedMonthly)}</strong>
+          <span>Monthly value created</span>
+        </div>
+        <div>
+          <strong>
+            {Number.isFinite(results.paybackMonths)
+              ? `${results.paybackMonths.toFixed(1)} months`
+              : 'N/A'}
+          </strong>
+          <span>Automation payback</span>
+        </div>
+        <div>
+          <strong>
+            {Number.isFinite(results.roiPercent)
+              ? `${results.roiPercent.toFixed(1)}%`
+              : 'N/A'}
+          </strong>
+          <span>12-month ROI</span>
+        </div>
+      </div>
+    </form>
+  );
+};
+
+const BuildQueueTicker = () => {
+  const [snapshot, setSnapshot] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const loadQueue = useCallback(async () => {
+    setIsLoading(true);
+    const response = await fetchBuildQueue();
+    if (response.ok) {
+      setSnapshot({
+        ...response.data,
+        refreshedAt: response.refreshedAt || new Date()
+      });
+      setErrorMessage('');
+    } else {
+      setErrorMessage(response.message || 'Unable to fetch build queue.');
+    }
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    loadQueue();
+  }, [loadQueue]);
+
+  const stats = snapshot || {
+    auditsRunning: 0,
+    deploymentsToday: 0,
+    avgTimeToValue: 0,
+    activeAgents: 0,
+    backlog: 0,
+    refreshedAt: new Date()
+  };
+
+  return (
+    <div className="build-queue">
+      <div className="queue-stats">
+        <div className="queue-stat">
+          <span>Audits running</span>
+          <strong>{stats.auditsRunning}</strong>
+        </div>
+        <div className="queue-stat">
+          <span>Deployments today</span>
+          <strong>{stats.deploymentsToday}</strong>
+        </div>
+        <div className="queue-stat">
+          <span>Avg time-to-value</span>
+          <strong>{stats.avgTimeToValue} days</strong>
+        </div>
+        <div className="queue-stat">
+          <span>Active agents</span>
+          <strong>{stats.activeAgents}</strong>
+        </div>
+        <div className="queue-stat">
+          <span>Build backlog</span>
+          <strong>{stats.backlog}</strong>
+        </div>
+      </div>
+      <div className="queue-refresh">
+        <button type="button" className="btn-ghost-lite" onClick={loadQueue} disabled={isLoading}>
+          {isLoading ? 'Refreshing…' : 'Refresh feed'}
+        </button>
+        <span>
+          Updated{' '}
+          {stats.refreshedAt
+            ? new Date(stats.refreshedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : '--'}
+        </span>
+      </div>
+      {errorMessage && <p className="momentum-error">{errorMessage}</p>}
+    </div>
+  );
+};
+
+const AGENT_TEMPLATES = {
+  sop: ({ topic }) => [
+    `Kick off with a 12-minute discovery on current ${topic} path, mapping trigger → owner → artefacts.`,
+    `Draft a crisp SOP with swimlanes, approval thresholds, and L0 fallback within 45 minutes.`,
+    `Automate version control: ship SOP to Notion + Slack, capturing comments and change telemetry automatically.`
+  ],
+  process: ({ topic }) => [
+    `Ingest the raw transcript and surface the three highest-friction steps in ${topic}.`,
+    `Model failure modes with guardrails, then propose agent/human breakpoints with a 30-60-90 plan.`,
+    `Publish a live dashboard showing cycle time, delta vs. baseline, and rollback triggers.`
+  ],
+  automation: ({ topic }) => [
+    `Capture the upstream signals feeding ${topic} and validate data hygiene with the growth telemetry API.`,
+    `Compose an agentic runbook: perception, reasoning, action, and audit logging in under 60 seconds.`,
+    `Spin up an A/B harness so the agent can ship safe changes with automated post-run reviews.`
+  ]
+};
+
+const AgentDemoCard = () => {
+  const [scenario, setScenario] = useState('sop');
+  const [description, setDescription] = useState('');
+  const [output, setOutput] = useState([]);
+  const [copyState, setCopyState] = useState('');
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const trimmed = description.trim() || 'the process';
+    const builder = AGENT_TEMPLATES[scenario];
+    const plan = builder({ topic: trimmed });
+    setOutput(plan);
+    setCopyState('');
+  };
+
+  const handleCopy = async () => {
+    if (!output.length) return;
+    try {
+      await navigator.clipboard.writeText(output.join('\n'));
+      setCopyState('Plan copied');
+    } catch {
+      setCopyState('Copy failed');
+    }
+    window.setTimeout(() => setCopyState(''), 1800);
+  };
+
+  return (
+    <div className="agent-demo">
+      <form onSubmit={handleSubmit}>
+        <label className="momentum-label" htmlFor="agent-scenario">
+          Agent focus
+        </label>
+        <select
+          id="agent-scenario"
+          value={scenario}
+          onChange={(event) => setScenario(event.target.value)}
+        >
+          <option value="sop">Draft a SOP</option>
+          <option value="process">Analyze a process</option>
+          <option value="automation">Map an automation</option>
+        </select>
+        <label className="momentum-label" htmlFor="agent-desc">
+          Describe the workflow
+        </label>
+        <textarea
+          id="agent-desc"
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+          placeholder="e.g. Level 7 onboarding intake, enterprise support handoffs…"
+        />
+        <button type="submit">Generate plan</button>
+      </form>
+      {output.length > 0 && (
+        <div className="agent-output">
+          {output.map((line, index) => (
+            <div key={index}>
+              <code>Step {index + 1}</code> {line}
+            </div>
+          ))}
+          <button type="button" className="btn-ghost-lite" onClick={handleCopy}>
+            {copyState || 'Copy plan'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const HeroWorkbench = () => (
+  <div className="hero-widgets">
+    <div className="hero-widget">
+      <header>
+        <h3>ROI Console</h3>
+        <span>Model the payback</span>
+      </header>
+      <RoiCalculator />
+    </div>
+    <div className="hero-widget">
+      <header>
+        <h3>Build Queue</h3>
+        <span>Live delivery rhythm</span>
+      </header>
+      <BuildQueueTicker />
+    </div>
+    <div className="hero-widget">
+      <header>
+        <h3>Agent Blueprint</h3>
+        <span>Launch in 60 seconds</span>
+      </header>
+      <AgentDemoCard />
+    </div>
+  </div>
+);
+
 const VisualizerApp = () => {
   const initialTopic = getInitialTopic();
 
@@ -673,6 +1038,18 @@ const mountMomentum = () => {
   );
 };
 
+const mountHeroWorkbench = () => {
+  const host = document.getElementById('hero-workbench');
+  if (!host) return;
+
+  const root = createRoot(host);
+  root.render(
+    <React.StrictMode>
+      <HeroWorkbench />
+    </React.StrictMode>
+  );
+};
+
 const mountVisualizer = () => {
   const host = document.getElementById('ai-visualizer');
   if (!host) return;
@@ -687,6 +1064,7 @@ const mountVisualizer = () => {
 
 const bootInteractive = () => {
   mountMomentum();
+  mountHeroWorkbench();
   mountVisualizer();
 };
 
