@@ -244,10 +244,9 @@ body.menu-open .mobile-panel { display: block; opacity: 1; transform: translateY
   display: flex;
   align-items: stretch;
   justify-content: flex-end;
-  max-width: min(620px, 100%);
 }
 .momentum-panel {
-  width: min(540px, 100%);
+  width: 100%;
   border-radius: 20px;
   background: linear-gradient(200deg, rgba(13, 22, 37, 0.86), rgba(7, 9, 16, 0.92));
   border: 1px solid rgba(0, 225, 255, 0.16);
