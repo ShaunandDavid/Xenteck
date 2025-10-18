@@ -336,9 +336,9 @@ const MomentumHero = () => {
   const hint = errorMessage
     ? errorMessage
     : isLoading
-    ? 'Crunching live telemetry…'
+    ? 'Crunching live telemetry...'
     : isDebouncing
-    ? 'Syncing feed…'
+    ? 'Syncing feed...'
     : 'Type a capability or tap a chip to bend the curve.';
 
   const summary = frame.summary;
@@ -364,7 +364,7 @@ const MomentumHero = () => {
           <small>
             {lastUpdated
               ? `Updated ${lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-              : 'Awaiting feed…'}
+              : 'Awaiting feed...'}
           </small>
         </div>
       </div>
@@ -429,7 +429,7 @@ const MomentumHero = () => {
           <div className="momentum-shell__overlay">
             <div className="visualizer-spinner">
               <span className="spinner-dot" aria-hidden="true" />
-              <span className="spinner-label">Syncing momentum signals…</span>
+              <span className="spinner-label">Syncing momentum signals...</span>
             </div>
           </div>
         )}
@@ -444,7 +444,7 @@ const MomentumHero = () => {
             type="text"
             value={inputValue}
             onChange={handleInputChange}
-            placeholder="Agent operations, autonomy ops, AI in finance…"
+            placeholder="Agent operations, autonomy ops, AI in finance..."
             autoComplete="off"
           />
           <button type="submit">Track</button>
@@ -726,7 +726,7 @@ const BuildQueueTicker = () => {
       </div>
       <div className="queue-refresh">
         <button type="button" className="btn-ghost-lite" onClick={loadQueue} disabled={isLoading}>
-          {isLoading ? 'Refreshing…' : 'Refresh feed'}
+          {isLoading ? 'Refreshing...' : 'Refresh feed'}
         </button>
         <span>
           Updated{' '}
@@ -742,7 +742,7 @@ const BuildQueueTicker = () => {
 
 const AGENT_TEMPLATES = {
   sop: ({ topic }) => [
-    `Kick off with a 12-minute discovery on current ${topic} path, mapping trigger → owner → artefacts.`,
+    `Kick off with a 12-minute discovery on current ${topic} path, mapping trigger -> owner -> artefacts.`,
     `Draft a crisp SOP with swimlanes, approval thresholds, and L0 fallback within 45 minutes.`,
     `Automate version control: ship SOP to Notion + Slack, capturing comments and change telemetry automatically.`
   ],
@@ -757,6 +757,48 @@ const AGENT_TEMPLATES = {
     `Spin up an A/B harness so the agent can ship safe changes with automated post-run reviews.`
   ]
 };
+
+const OUTCOME_DATA = [
+  {
+    title: 'Autonomy Ops',
+    delta: '+428 hrs saved',
+    metric: 'Deployment velocity +41%',
+    timeframe: '30 days',
+    highlight: 'Agents closed 92% of incident loops end-to-end.'
+  },
+  {
+    title: 'Revenue Engine',
+    delta: '+$1.8M pipeline',
+    metric: 'Reply rate lifted 3.4x',
+    timeframe: '45 days',
+    highlight: 'Sequenced agents drafted, QA’d, and shipped 12k outreach assets.'
+  },
+  {
+    title: 'Support Mesh',
+    delta: '-63% resolution time',
+    metric: 'Escalations down 58%',
+    timeframe: '60 days',
+    highlight: 'Hybrid LLM guardrails auto-resolved repetitive tickets with full audit logs.'
+  }
+];
+
+const OutcomeLeaderboard = () => (
+  <div className="leaderboard-list">
+    {OUTCOME_DATA.map((item) => (
+      <div key={item.title} className="leaderboard-item">
+        <header>
+          <span>{item.title}</span>
+          <span>{item.timeframe}</span>
+        </header>
+        <p>{item.highlight}</p>
+        <footer>
+          <strong>{item.delta}</strong>
+          <span>{item.metric}</span>
+        </footer>
+      </div>
+    ))}
+  </div>
+);
 
 const AgentDemoCard = () => {
   const [scenario, setScenario] = useState('sop');
@@ -806,7 +848,7 @@ const AgentDemoCard = () => {
           id="agent-desc"
           value={description}
           onChange={(event) => setDescription(event.target.value)}
-          placeholder="e.g. Level 7 onboarding intake, enterprise support handoffs…"
+          placeholder="e.g. Level 7 onboarding intake, enterprise support handoffs..."
         />
         <button type="submit">Generate plan</button>
       </form>
@@ -841,6 +883,13 @@ const HeroWorkbench = () => (
         <span>Live delivery rhythm</span>
       </header>
       <BuildQueueTicker />
+    </div>
+    <div className="hero-widget">
+      <header>
+        <h3>Outcome Leaderboard</h3>
+        <span>Proof in the signals</span>
+      </header>
+      <OutcomeLeaderboard />
     </div>
     <div className="hero-widget">
       <header>
@@ -1073,3 +1122,8 @@ if (document.readyState === 'loading') {
 } else {
   bootInteractive();
 }
+
+
+
+
+
