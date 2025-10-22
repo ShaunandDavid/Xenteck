@@ -914,10 +914,6 @@ const VisualizerApp = () => {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [growthActive, setGrowthActive] = useState(false);
 
-  useEffect(() => {
-    console.log('[Visualizer] growthApiUrl =', getGrowthApiUrl() || '(none)');
-  }, []);
-
   const runProjection = useCallback(async (currentTopic) => {
     if (!currentTopic) return;
 
