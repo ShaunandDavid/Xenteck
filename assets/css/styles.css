@@ -192,7 +192,7 @@ body.menu-open .mobile-panel { display: block; opacity: 1; transform: translateY
 ========================== */
 .hero {
   position: relative;
-  min-height: 100svh;
+  min-height: clamp(480px, 100svh, 900px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -204,9 +204,10 @@ body.menu-open .mobile-panel { display: block; opacity: 1; transform: translateY
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center 46%;
-  filter: saturate(110%) contrast(105%) brightness(.8);
+  object-fit: contain;
+  object-position: center;
+  filter: saturate(95%) contrast(92%) brightness(.7);
+  background-color: #05070d;
 }
 .hero::after {
   content: "";
@@ -1141,7 +1142,7 @@ footer { border-top: 1px solid var(--line); background: linear-gradient(180deg, 
    RESPONSIVE
 ========================== */
 @media (max-width: 1280px) {
-  .hero-video { object-position: center 52%; }
+  .hero-video { object-position: center; }
 }
 @media (max-width: 1080px) {
   .mega.grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1164,7 +1165,7 @@ footer { border-top: 1px solid var(--line); background: linear-gradient(180deg, 
   .hero-widgets { grid-template-columns: minmax(0, 1fr); }
   .roi-grid { grid-template-columns: minmax(0, 1fr); }
   .roi-results { grid-template-columns: minmax(0, 1fr); }
-  .hero-video { object-position: center 56%; }
+  .hero-video { object-position: center; }
 }
 
 @media (max-width: 920px) {
