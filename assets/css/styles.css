@@ -214,7 +214,7 @@ body.menu-open .mobile-panel { display: block; opacity: 1; transform: translateY
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6rem 0;
+  padding: clamp(2.5rem, 5vw, 4rem) 0 clamp(4rem, 8vw, 6rem);
   overflow: hidden;
   isolation: isolate;
 }
