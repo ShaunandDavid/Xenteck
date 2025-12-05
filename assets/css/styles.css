@@ -223,11 +223,10 @@ body.menu-open .mobile-panel { display: block; opacity: 1; transform: translateY
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
   filter: saturate(105%) contrast(96%) brightness(.72);
   background-color: #05070d;
-  transform: scale(1.02);
 }
 .hero::after {
   content: "";
