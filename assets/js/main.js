@@ -263,6 +263,32 @@
       ease: 'power2.out',
       delay: .1
     });
+
+    window.gsap.utils.toArray('.ai-stat-chip').forEach((chip) => {
+      window.gsap.from(chip, {
+        opacity: 0,
+        y: 14,
+        duration: 0.6,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: chip,
+          start: 'top 85%'
+        }
+      });
+    });
+
+    window.gsap.utils.toArray('.outcome-video').forEach((card) => {
+      window.gsap.from(card, {
+        opacity: 0,
+        y: 16,
+        duration: 0.65,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: card,
+          start: 'top 85%'
+        }
+      });
+    });
   };
 
   enforceHttps();

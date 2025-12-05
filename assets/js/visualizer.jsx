@@ -208,6 +208,53 @@ const multipleFormatter = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 1
 });
 
+const computeProjectionSummary = (series = []) => {
+  if (!Array.isArray(series) || series.length === 0) {
+    const year = new Date().getUTCFullYear();
+    return {
+      delta: 0,
+      velocity: 0,
+      multiple: 1,
+      horizon: year,
+      startYear: year
+    };
+  }
+
+  const sorted = [...series].sort((a, b) => (a.year || 0) - (b.year || 0));
+  const first = sorted[0];
+  const last = sorted[sorted.length - 1];
+  const prev = sorted[Math.max(sorted.length - 2, 0)] || first;
+
+  const startValue = Number(first.advancement) || 1;
+  const endValue = Number(last.advancement) || startValue;
+  const delta = Math.round(endValue - startValue);
+  const velocity = Math.round(endValue - (Number(prev.advancement) || startValue));
+  const multiple = Math.max(0, Number((endValue / Math.max(startValue, 1)).toFixed(1)));
+
+  return {
+    delta,
+    velocity,
+    multiple,
+    horizon: last.year || first.year,
+    startYear: first.year || new Date().getUTCFullYear()
+  };
+};
+
+const logProjectionTelemetry = (topic, source, summary) => {
+  try {
+    console.info('[telemetry] projection-render', {
+      topic,
+      source,
+      delta: summary?.delta,
+      velocity: summary?.velocity,
+      multiple: summary?.multiple,
+      horizon: summary?.horizon
+    });
+  } catch (error) {
+    // noop for now; swap with real analytics later
+  }
+};
+
 const MomentumTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) {
     return null;
@@ -252,6 +299,7 @@ const MomentumHero = () => {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const debounceRef = useRef(null);
+  const [userPinned, setUserPinned] = useState(false);
 
   const loadMomentum = useCallback(
     async (topic) => {
@@ -284,6 +332,18 @@ const MomentumHero = () => {
     loadMomentum(activeTopic);
   }, [activeTopic, loadMomentum]);
 
+  useEffect(() => {
+    if (userPinned) return undefined;
+    let index = sampleTopics.indexOf(activeTopic);
+    const id = window.setInterval(() => {
+      index = (index + 1) % sampleTopics.length;
+      const next = sampleTopics[index];
+      setInputValue(next);
+      setActiveTopic(next);
+    }, 9800);
+    return () => window.clearInterval(id);
+  }, [activeTopic, userPinned]);
+
   useEffect(
     () => () => {
       if (debounceRef.current) {
@@ -296,6 +356,7 @@ const MomentumHero = () => {
   const handleInputChange = (event) => {
     const value = event.target.value;
     setInputValue(value);
+    setUserPinned(true);
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
@@ -318,6 +379,7 @@ const MomentumHero = () => {
     }
     const trimmed = inputValue.trim();
     if (trimmed && trimmed !== activeTopic) {
+      setUserPinned(true);
       setActiveTopic(trimmed);
     }
   };
@@ -327,6 +389,7 @@ const MomentumHero = () => {
       clearTimeout(debounceRef.current);
     }
     setInputValue(topic);
+    setUserPinned(true);
     setIsDebouncing(false);
     if (topic !== activeTopic) {
       setActiveTopic(topic);
@@ -907,6 +970,9 @@ const VisualizerApp = () => {
   const [topic, setTopic] = useState(initialTopic);
   const [topicDraft, setTopicDraft] = useState(initialTopic);
   const [projectionData, setProjectionData] = useState(() => createAggressiveProjection(initialTopic));
+  const [projectionSummary, setProjectionSummary] = useState(() =>
+    computeProjectionSummary(createAggressiveProjection(initialTopic))
+  );
   const [statusMessage, setStatusMessage] = useState('Illustrative projection. Live ensemble data will appear here when services respond.');
   const [sourceLabel, setSourceLabel] = useState('Illustrative');
   const [errorMessage, setErrorMessage] = useState('');
@@ -956,7 +1022,10 @@ const VisualizerApp = () => {
     }
 
     if (data && data.length) {
+      const summary = computeProjectionSummary(data);
       setProjectionData(data);
+      setProjectionSummary(summary);
+      logProjectionTelemetry(currentTopic, source, summary);
       if (source === 'growth') {
         setStatusMessage('Live projection served by Growth API + LLM ensemble');
         setSourceLabel('Growth API + Ensemble');
@@ -973,7 +1042,10 @@ const VisualizerApp = () => {
       setLastUpdated(new Date());
     } else {
       const fallback = createAggressiveProjection(currentTopic);
+      const summary = computeProjectionSummary(fallback);
       setProjectionData(fallback);
+      setProjectionSummary(summary);
+      logProjectionTelemetry(currentTopic, 'illustrative', summary);
       setSourceLabel('Illustrative Ensemble');
       setStatusMessage('Showing illustrative projection');
       if (growthError) {
@@ -1010,6 +1082,16 @@ const VisualizerApp = () => {
     errorMessage
   }), [statusMessage, sourceLabel, errorMessage]);
 
+  const summaryStats = useMemo(() => {
+    const { delta, velocity, multiple, horizon } = projectionSummary;
+    return [
+      { label: 'Delta vs start', value: `${delta >= 0 ? '+' : ''}${numberFormatter.format(delta)} pts` },
+      { label: 'Velocity', value: `${velocityFormatter.format(velocity)} / yr` },
+      { label: 'Tipping year', value: horizon || '—' },
+      { label: 'Growth multiple', value: `${multipleFormatter.format(multiple)}x` }
+    ];
+  }, [projectionSummary]);
+
   return (
     <div className="ai-visualizer">
       <div className="ai-visualizer__header">
@@ -1035,6 +1117,14 @@ const VisualizerApp = () => {
             <p className="ai-panel__subtext">
               Baseline vs. topic-specific acceleration, indexed against a 1-1000 advancement score.
             </p>
+            <div className="ai-stat-strip">
+              {summaryStats.map((item) => (
+                <div key={item.label} className="ai-stat-chip">
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                </div>
+              ))}
+            </div>
             <div className="ai-chart-shell">
               {isLoading ? (
                 <div className="ai-chart-placeholder">
