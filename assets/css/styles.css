@@ -224,7 +224,7 @@ body.menu-open .mobile-panel { display: block; opacity: 1; transform: translateY
   width: 100%;
   height: 100%;
   object-fit: contain;
-  object-position: center;
+  object-position: center top;
   filter: saturate(105%) contrast(96%) brightness(.72);
   background-color: #05070d;
 }
