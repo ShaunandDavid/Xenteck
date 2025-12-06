@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XenTeck Notes | Blog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="assets/css/tailwind.css" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+  <header class="nav" aria-label="Primary Navigation">
+    <div class="container nav-inner">
+      <a href="/" class="brand" aria-label="XenTeck Home">
+        <span class="brand-logo" aria-hidden="true"></span>
+        <span class="brand-name sora">XenTeck</span>
+      </a>
+      <nav class="nav-links" aria-label="Main">
+        <a class="nav-link" href="/#assistant-system">Assistant System</a>
+        <a class="nav-link" href="/assistants.html">Assistants</a>
+        <a class="nav-link" href="/signals.html">Signals</a>
+        <a class="nav-link" href="/blog.html">Blog</a>
+        <a class="nav-link" href="/about.html">About</a>
+        <a class="nav-link nav-link--cta" href="/contact">Talk to Our Team</a>
+      </nav>
+      <button class="hamburger" aria-label="Open menu" aria-controls="mobile-panel" aria-expanded="false"><span class="ham-bar"></span></button>
+    </div>
+    <div id="mobile-panel" class="mobile-panel" role="dialog" aria-modal="true" aria-label="Mobile Menu" aria-hidden="true">
+      <div class="container mobile-grid">
+        <div class="col">
+          <strong class="sora mobile-heading">Navigate</strong>
+          <a href="/#assistant-system">Assistant System</a>
+          <a href="/assistants.html">Assistants</a>
+          <a href="/signals.html">Signals</a>
+          <a href="/blog.html">Blog</a>
+          <a href="/about.html">About</a>
+          <a class="nav-link nav-link--cta" href="/contact">Talk to Our Team</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="section" style="padding-top:6rem" aria-label="Blog Hero">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h1 class="section-title sora">XenTeck Notes</h1>
+            <p class="section-desc">Essays, build logs, and playbooks on assistant systems—beyond the hype about agents.</p>
+          </div>
+        </div>
+        <div class="momentum-suggestions" style="margin: 1rem 0;">
+          <span class="momentum-chip">Assistant Systems</span>
+          <span class="momentum-chip">Playbooks</span>
+          <span class="momentum-chip">Build Logs</span>
+          <span class="momentum-chip">Founder Notes</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-label="Posts">
+      <div class="container blog-grid" style="grid-template-columns: 1.1fr .9fr;">
+        <div class="card blog-hero" style="gap:1rem;">
+          <h3 class="sora">Why Assistant Systems Beat One-Off Agents</h3>
+          <p class="meta"><span>Assistant Systems</span><span class="meta-sep">•</span><span>Jun 12, 2025</span><span class="meta-sep">•</span><span>6 min read</span></p>
+          <p>Assistant systems share one brain and telemetry across every workflow, so you get reliability, auditability, and predictable outcomes—not a zoo of bots.</p>
+          <a class="view-all" href="/blog-why-assistant-systems.html">Read →</a>
+        </div>
+        <aside class="card blog-side" aria-label="Start here">
+          <h4 class="sora">Start Here</h4>
+          <a class="blog-item" href="/blog-why-assistant-systems.html"><strong>Why Assistant Systems Beat One-Off Agents</strong><span class="muted">The core thesis behind XenTeck.</span></a>
+          <div class="form-field" style="margin-top:1rem;">
+            <label>Email updates</label>
+            <input type="email" placeholder="you@company.com" />
+          </div>
+          <button class="btn btn-primary" type="button"><span>Get new posts</span></button>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section" aria-label="More posts">
+      <div class="container blog-grid">
+        <article class="card blog-side">
+          <h3 class="sora">A Simple Playbook for Your First Assistant</h3>
+          <p class="meta"><span>Playbooks</span><span class="meta-sep">•</span><span>May 30, 2025</span><span class="meta-sep">•</span><span>5 min read</span></p>
+          <p>Define the outcome, wire telemetry, and start with the assistant that pays back first.</p>
+          <a class="view-all" href="/blog-first-assistant-playbook.html">Read →</a>
+        </article>
+        <article class="card blog-side">
+          <h3 class="sora">Build Log: Shipping the Lead Concierge Assistant</h3>
+          <p class="meta"><span>Build Logs</span><span class="meta-sep">•</span><span>May 18, 2025</span><span class="meta-sep">•</span><span>4 min read</span></p>
+          <p>How we stitched inbound, enrichment, scoring, and booking into one assistant system flow.</p>
+          <a class="view-all" href="/blog-build-lead-concierge.html">Read →</a>
+        </article>
+        <article class="card blog-side">
+          <h3 class="sora">Founder Notes: What We’re Learning Building XenTeck</h3>
+          <p class="meta"><span>Founder Notes</span><span class="meta-sep">•</span><span>May 10, 2025</span><span class="meta-sep">•</span><span>3 min read</span></p>
+          <p>Behind the scenes on pricing, delivery, and keeping quality high while moving fast.</p>
+          <a class="view-all" href="/blog-founder-notes.html">Read →</a>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" role="contentinfo">
+    <div class="container legal">
+      <p>&copy; <span id="year"></span> XenTeck. All rights reserved.</p>
+      <p>Assistant systems, built for outcomes.</p>
+    </div>
+  </footer>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
