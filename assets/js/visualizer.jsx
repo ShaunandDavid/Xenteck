@@ -28,7 +28,7 @@ const DEFAULT_TOPIC = 'AI Growth';
 const sampleTopics = [
   'Quantum Computing',
   'Robotics Process Automation',
-  'Generative Design Agents',
+  'Generative Design Assistants',
   'AI in Healthcare'
 ];
 
@@ -499,7 +499,7 @@ const MomentumHero = () => {
       </div>
       <form className="momentum-form" onSubmit={handleSubmit}>
         <label className="momentum-label" htmlFor="momentum-input">
-          Track a topic
+          Track a market
         </label>
         <div className="momentum-input-row">
           <input
@@ -507,7 +507,7 @@ const MomentumHero = () => {
             type="text"
             value={inputValue}
             onChange={handleInputChange}
-            placeholder="Agent operations, autonomy ops, AI in finance..."
+            placeholder="Assistant ops, autonomy shifts, AI in finance..."
             autoComplete="off"
           />
           <button type="submit">Track</button>
@@ -779,7 +779,7 @@ const BuildQueueTicker = () => {
           <strong>{stats.avgTimeToValue} days</strong>
         </div>
         <div className="queue-stat">
-          <span>Active agents</span>
+          <span>Active assistants</span>
           <strong>{stats.activeAgents}</strong>
         </div>
         <div className="queue-stat">
@@ -811,13 +811,13 @@ const AGENT_TEMPLATES = {
   ],
   process: ({ topic }) => [
     `Ingest the raw transcript and surface the three highest-friction steps in ${topic}.`,
-    `Model failure modes with guardrails, then propose agent/human breakpoints with a 30-60-90 plan.`,
+    `Model failure modes with guardrails, then propose assistant/human breakpoints with a 30-60-90 plan.`,
     `Publish a live dashboard showing cycle time, delta vs. baseline, and rollback triggers.`
   ],
   automation: ({ topic }) => [
     `Capture the upstream signals feeding ${topic} and validate data hygiene with the growth telemetry API.`,
-    `Compose an agentic runbook: perception, reasoning, action, and audit logging in under 60 seconds.`,
-    `Spin up an A/B harness so the agent can ship safe changes with automated post-run reviews.`
+    `Compose an assistant runbook: perception, reasoning, action, and audit logging in under 60 seconds.`,
+    `Spin up an A/B harness so the assistant can ship safe changes with automated post-run reviews.`
   ]
 };
 
@@ -827,14 +827,14 @@ const OUTCOME_DATA = [
     delta: '+428 hrs saved',
     metric: 'Deployment velocity +41%',
     timeframe: '30 days',
-    highlight: 'Agents closed 92% of incident loops end-to-end.'
+    highlight: 'Assistants closed 92% of incident loops end-to-end.'
   },
   {
     title: 'Revenue Engine',
     delta: '+$1.8M pipeline',
     metric: 'Reply rate lifted 3.4x',
     timeframe: '45 days',
-    highlight: 'Sequenced agents drafted, QA’d, and shipped 12k outreach assets.'
+    highlight: 'Sequenced assistants drafted, QA’d, and shipped 12k outreach assets.'
   },
   {
     title: 'Support Mesh',
@@ -893,7 +893,7 @@ const AgentDemoCard = () => {
     <div className="agent-demo">
       <form onSubmit={handleSubmit}>
         <label className="momentum-label" htmlFor="agent-scenario">
-          Agent focus
+          Assistant focus
         </label>
         <select
           id="agent-scenario"
@@ -956,7 +956,7 @@ const HeroWorkbench = () => (
     </div>
     <div className="hero-widget">
       <header>
-        <h3>Agent Blueprint</h3>
+        <h3>Assistant Blueprint</h3>
         <span>Launch in 60 seconds</span>
       </header>
       <AgentDemoCard />

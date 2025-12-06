@@ -43908,7 +43908,7 @@ var DEFAULT_TOPIC = "AI Growth";
 var sampleTopics = [
   "Quantum Computing",
   "Robotics Process Automation",
-  "Generative Design Agents",
+  "Generative Design Assistants",
   "AI in Healthcare"
 ];
 var getInitialTopic = () => {
@@ -44203,14 +44203,14 @@ var MomentumHero = () => {
       dot: { stroke: "#00e1ff", strokeWidth: 1, r: 4, fill: "#00e1ff" },
       connectNulls: true
     }
-  ))), loadingOverlay && /* @__PURE__ */ import_react49.default.createElement("div", { className: "momentum-shell__overlay" }, /* @__PURE__ */ import_react49.default.createElement("div", { className: "visualizer-spinner" }, /* @__PURE__ */ import_react49.default.createElement("span", { className: "spinner-dot", "aria-hidden": "true" }), /* @__PURE__ */ import_react49.default.createElement("span", { className: "spinner-label" }, "Syncing momentum signals...")))), /* @__PURE__ */ import_react49.default.createElement("form", { className: "momentum-form", onSubmit: handleSubmit }, /* @__PURE__ */ import_react49.default.createElement("label", { className: "momentum-label", htmlFor: "momentum-input" }, "Track a topic"), /* @__PURE__ */ import_react49.default.createElement("div", { className: "momentum-input-row" }, /* @__PURE__ */ import_react49.default.createElement(
+  ))), loadingOverlay && /* @__PURE__ */ import_react49.default.createElement("div", { className: "momentum-shell__overlay" }, /* @__PURE__ */ import_react49.default.createElement("div", { className: "visualizer-spinner" }, /* @__PURE__ */ import_react49.default.createElement("span", { className: "spinner-dot", "aria-hidden": "true" }), /* @__PURE__ */ import_react49.default.createElement("span", { className: "spinner-label" }, "Syncing momentum signals...")))), /* @__PURE__ */ import_react49.default.createElement("form", { className: "momentum-form", onSubmit: handleSubmit }, /* @__PURE__ */ import_react49.default.createElement("label", { className: "momentum-label", htmlFor: "momentum-input" }, "Track a market"), /* @__PURE__ */ import_react49.default.createElement("div", { className: "momentum-input-row" }, /* @__PURE__ */ import_react49.default.createElement(
     "input",
     {
       id: "momentum-input",
       type: "text",
       value: inputValue,
       onChange: handleInputChange,
-      placeholder: "Agent operations, autonomy ops, AI in finance...",
+      placeholder: "Assistant ops, autonomy ops, AI in finance...",
       autoComplete: "off"
     }
   ), /* @__PURE__ */ import_react49.default.createElement("button", { type: "submit" }, "Track")), /* @__PURE__ */ import_react49.default.createElement("div", { className: "momentum-hint" }, hint), /* @__PURE__ */ import_react49.default.createElement("div", { className: "momentum-suggestions" }, sampleTopics.map((topic) => /* @__PURE__ */ import_react49.default.createElement(
@@ -44371,7 +44371,7 @@ var BuildQueueTicker = () => {
     backlog: 0,
     refreshedAt: /* @__PURE__ */ new Date()
   };
-  return /* @__PURE__ */ import_react49.default.createElement("div", { className: "build-queue" }, /* @__PURE__ */ import_react49.default.createElement("div", { className: "queue-stats" }, /* @__PURE__ */ import_react49.default.createElement("div", { className: "queue-stat" }, /* @__PURE__ */ import_react49.default.createElement("span", null, "Audits running"), /* @__PURE__ */ import_react49.default.createElement("strong", null, stats.auditsRunning)), /* @__PURE__ */ import_react49.default.createElement("div", { className: "queue-stat" }, /* @__PURE__ */ import_react49.default.createElement("span", null, "Deployments today"), /* @__PURE__ */ import_react49.default.createElement("strong", null, stats.deploymentsToday)), /* @__PURE__ */ import_react49.default.createElement("div", { className: "queue-stat" }, /* @__PURE__ */ import_react49.default.createElement("span", null, "Avg time-to-value"), /* @__PURE__ */ import_react49.default.createElement("strong", null, stats.avgTimeToValue, " days")), /* @__PURE__ */ import_react49.default.createElement("div", { className: "queue-stat" }, /* @__PURE__ */ import_react49.default.createElement("span", null, "Active agents"), /* @__PURE__ */ import_react49.default.createElement("strong", null, stats.activeAgents)), /* @__PURE__ */ import_react49.default.createElement("div", { className: "queue-stat" }, /* @__PURE__ */ import_react49.default.createElement("span", null, "Build backlog"), /* @__PURE__ */ import_react49.default.createElement("strong", null, stats.backlog))), /* @__PURE__ */ import_react49.default.createElement("div", { className: "queue-refresh" }, /* @__PURE__ */ import_react49.default.createElement("button", { type: "button", className: "btn-ghost-lite", onClick: loadQueue, disabled: isLoading }, isLoading ? "Refreshing..." : "Refresh feed"), /* @__PURE__ */ import_react49.default.createElement("span", null, "Updated", " ", stats.refreshedAt ? new Date(stats.refreshedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "--")), errorMessage && /* @__PURE__ */ import_react49.default.createElement("p", { className: "momentum-error" }, errorMessage));
+  return /* @__PURE__ */ import_react49.default.createElement("div", { className: "build-queue" }, /* @__PURE__ */ import_react49.default.createElement("div", { className: "queue-stats" }, /* @__PURE__ */ import_react49.default.createElement("div", { className: "queue-stat" }, /* @__PURE__ */ import_react49.default.createElement("span", null, "Audits running"), /* @__PURE__ */ import_react49.default.createElement("strong", null, stats.auditsRunning)), /* @__PURE__ */ import_react49.default.createElement("div", { className: "queue-stat" }, /* @__PURE__ */ import_react49.default.createElement("span", null, "Deployments today"), /* @__PURE__ */ import_react49.default.createElement("strong", null, stats.deploymentsToday)), /* @__PURE__ */ import_react49.default.createElement("div", { className: "queue-stat" }, /* @__PURE__ */ import_react49.default.createElement("span", null, "Avg time-to-value"), /* @__PURE__ */ import_react49.default.createElement("strong", null, stats.avgTimeToValue, " days")), /* @__PURE__ */ import_react49.default.createElement("div", { className: "queue-stat" }, /* @__PURE__ */ import_react49.default.createElement("span", null, "Active assistants"), /* @__PURE__ */ import_react49.default.createElement("strong", null, stats.activeAgents)), /* @__PURE__ */ import_react49.default.createElement("div", { className: "queue-stat" }, /* @__PURE__ */ import_react49.default.createElement("span", null, "Build backlog"), /* @__PURE__ */ import_react49.default.createElement("strong", null, stats.backlog))), /* @__PURE__ */ import_react49.default.createElement("div", { className: "queue-refresh" }, /* @__PURE__ */ import_react49.default.createElement("button", { type: "button", className: "btn-ghost-lite", onClick: loadQueue, disabled: isLoading }, isLoading ? "Refreshing..." : "Refresh feed"), /* @__PURE__ */ import_react49.default.createElement("span", null, "Updated", " ", stats.refreshedAt ? new Date(stats.refreshedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "--")), errorMessage && /* @__PURE__ */ import_react49.default.createElement("p", { className: "momentum-error" }, errorMessage));
 };
 var AGENT_TEMPLATES = {
   sop: ({ topic }) => [
@@ -44381,13 +44381,13 @@ var AGENT_TEMPLATES = {
   ],
   process: ({ topic }) => [
     `Ingest the raw transcript and surface the three highest-friction steps in ${topic}.`,
-    `Model failure modes with guardrails, then propose agent/human breakpoints with a 30-60-90 plan.`,
+    `Model failure modes with guardrails, then propose assistant/human breakpoints with a 30-60-90 plan.`,
     `Publish a live dashboard showing cycle time, delta vs. baseline, and rollback triggers.`
   ],
   automation: ({ topic }) => [
     `Capture the upstream signals feeding ${topic} and validate data hygiene with the growth telemetry API.`,
-    `Compose an agentic runbook: perception, reasoning, action, and audit logging in under 60 seconds.`,
-    `Spin up an A/B harness so the agent can ship safe changes with automated post-run reviews.`
+    `Compose an assistant runbook: perception, reasoning, action, and audit logging in under 60 seconds.`,
+    `Spin up an A/B harness so the assistant can ship safe changes with automated post-run reviews.`
   ]
 };
 var OUTCOME_DATA = [
@@ -44403,7 +44403,7 @@ var OUTCOME_DATA = [
     delta: "+$1.8M pipeline",
     metric: "Reply rate lifted 3.4x",
     timeframe: "45 days",
-    highlight: "Sequenced agents drafted, QA\u2019d, and shipped 12k outreach assets."
+    highlight: "Sequenced assistants drafted, QA\u2019d, and shipped 12k outreach assets."
   },
   {
     title: "Support Mesh",
@@ -44437,7 +44437,7 @@ var AgentDemoCard = () => {
     }
     window.setTimeout(() => setCopyState(""), 1800);
   };
-  return /* @__PURE__ */ import_react49.default.createElement("div", { className: "agent-demo" }, /* @__PURE__ */ import_react49.default.createElement("form", { onSubmit: handleSubmit }, /* @__PURE__ */ import_react49.default.createElement("label", { className: "momentum-label", htmlFor: "agent-scenario" }, "Agent focus"), /* @__PURE__ */ import_react49.default.createElement(
+  return /* @__PURE__ */ import_react49.default.createElement("div", { className: "agent-demo" }, /* @__PURE__ */ import_react49.default.createElement("form", { onSubmit: handleSubmit }, /* @__PURE__ */ import_react49.default.createElement("label", { className: "momentum-label", htmlFor: "agent-scenario" }, "Assistant focus"), /* @__PURE__ */ import_react49.default.createElement(
     "select",
     {
       id: "agent-scenario",
@@ -44684,3 +44684,5 @@ use-sync-external-store/cjs/use-sync-external-store-with-selector.development.js
    * LICENSE file in the root directory of this source tree.
    *)
 */
+
+
